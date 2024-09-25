@@ -48,17 +48,13 @@ function UserProfile() {
       </div>
       <div className="px-4 pb-6 text-center lg:pb-8 xl:pb-11.5">
         <div className="relative z-30 mx-auto -mt-22 h-30 w-full max-w-30 rounded-full bg-white/20 p-1 backdrop-blur sm:h-44 sm:max-w-44 sm:p-3">
-          <div className="relative drop-shadow-2">
+          <div className="relative drop-shadow-2 w-full h-full">
             <Image
               src={User?.photo || ""}
               width={160}
               height={160}
-              style={{
-                width: "auto",
-                height: "auto",
-              }}
               alt="profile"
-              className="rounded-full"
+              className="rounded-full w-full h-full object-cover"
             />
           </div>
         </div>

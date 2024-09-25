@@ -1,4 +1,4 @@
-// File: C:\Users\Walid\Desktop\dashboard\epicsm-dashboard\src\app\jobs\create\page.tsx
+// File: C:\Users\Walid\Desktop\work 2.0\epicsm-dashboard\src\app\jobs\create\page.tsx
 import * as entry from '../../../../../src/app/jobs/create/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

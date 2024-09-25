@@ -44,10 +44,11 @@ const JobsTable = () => {
 
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
+
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="min-w-[220px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                Job ID
+                Platform
               </th>
               <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
                 Date Published
@@ -56,7 +57,7 @@ const JobsTable = () => {
                 Status
               </th>
               <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
-                Platform
+                Job ID
               </th>
               <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                 Like Count
@@ -66,23 +67,31 @@ const JobsTable = () => {
               </th>
             </tr>
           </thead>
+
           <tbody>
             {Jobs &&
               Jobs.map((job) => (
                 <tr key={job._id} className="w-full">
-                  <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
-                    <h5 className="font-medium text-black dark:text-white">
-                      {job.jobId}
-                    </h5>
-                    <p className="text-sm">
-                      Created: {new Date(job.createdAt).toLocaleDateString()}
+                  <td className="flex items-center gap-3 p-2.5 xl:p-5 pl-9 xl:pl-10">
+                    <div className="flex-shrink-0">
+                      <Image
+                        src="/images/brand/brand-05.svg"
+                        alt="Brand"
+                        width={48}
+                        height={48}
+                      />
+                    </div>
+                    <p className="hidden text-black dark:text-white sm:block">
+                      {job.platform}
                     </p>
                   </td>
+
                   <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                     <p className="text-black dark:text-white">
                       {new Date(job.datePublished).toLocaleDateString()}
                     </p>
                   </td>
+
                   <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                     <p
                       className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
@@ -94,14 +103,22 @@ const JobsTable = () => {
                       {job.status}
                     </p>
                   </td>
+
                   <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
-                    <p className="text-black dark:text-white">{job.platform}</p>
+                    <h5 className="font-medium text-black dark:text-white truncate">
+                      {job.jobId}
+                    </h5>
+                    <p className="text-sm">
+                      Created: {new Date(job.createdAt).toLocaleDateString()}
+                    </p>
                   </td>
+
                   <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                     <p className="text-black dark:text-white">
                       {job.likeCount}
                     </p>
                   </td>
+
                   <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
                     <div className="flex items-center space-x-3.5">
                       <Link
@@ -177,6 +194,7 @@ const JobsTable = () => {
                 </tr>
               ))}
           </tbody>
+
         </table>
       </div>
     </div>

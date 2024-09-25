@@ -37,7 +37,7 @@ const UsersList = () => {
       <h4 className="mb-6 px-7.5 text-xl font-semibold text-black dark:text-white">
         Users
       </h4>
-      <div className="grid sm:grid-cols-2">
+      <div>
         {Users &&
           Users.map((user) => (
             <Link
@@ -51,11 +51,7 @@ const UsersList = () => {
                   height={56}
                   src={user.photo || ""}
                   alt="User"
-                  style={{
-                    width: "auto",
-                    height: "auto",
-                  }}
-                  className="rounded-full"
+                  className="rounded-full w-full h-full object-cover"
                 />
               </div>
 

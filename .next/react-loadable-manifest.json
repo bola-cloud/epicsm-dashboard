@@ -11,6 +11,12 @@
       "static/chunks/_app-pages-browser_node_modules_react-apexcharts_dist_react-apexcharts_min_js.js"
     ]
   },
+  "components\\Charts\\page.tsx -> @/components/Charts/ChartThree": {
+    "id": "components\\Charts\\page.tsx -> @/components/Charts/ChartThree",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_Charts_ChartThree_tsx.js"
+    ]
+  },
   "components\\Dashboard\\E-commerce.tsx -> @/components/Charts/ChartThree": {
     "id": "components\\Dashboard\\E-commerce.tsx -> @/components/Charts/ChartThree",
     "files": [

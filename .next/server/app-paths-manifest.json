@@ -1,8 +1,9 @@
 {
-  "/jobs/page": "app/jobs/page.js",
-  "/accounts/page": "app/accounts/page.js",
-  "/users/[id]/page": "app/users/[id]/page.js",
-  "/jobs/[id]/page": "app/jobs/[id]/page.js",
   "/page": "app/page.js",
-  "/jobs/create/page": "app/jobs/create/page.js"
+  "/login/page": "app/login/page.js",
+  "/accounts/page": "app/accounts/page.js",
+  "/jobs/page": "app/jobs/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/users/page": "app/users/page.js",
+  "/jobs/[id]/page": "app/jobs/[id]/page.js"
 }

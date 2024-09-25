@@ -35,7 +35,7 @@ const AccountsList = () => {
       <h4 className="mb-6 px-7.5 text-xl font-semibold text-black dark:text-white">
         Social media accounts
       </h4>
-      <div className="grid sm:grid-cols-2">
+      <div>
         {Accounts &&
           Accounts.map((user) => (
             <Link
