@@ -49,7 +49,7 @@ function JobDetails() {
 
       if (res.status === 201) {
         setEnabled(!enabled);
-        toast.error("Job Updated");
+        toast.success("Job Updated");
         setJob(res.data);
       } else {
         console.error("No Job found");
