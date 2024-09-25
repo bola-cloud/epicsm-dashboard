@@ -1,15 +1,23 @@
 "use client";
 
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import MultiSelect from "../FormElements/MultiSelect";
+import SelectGroupOne from "../SelectGroup/SelectGroupOne";
+import Select from "../common/Select";
 
 function JobCreate() {
+  const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
+  const [linkTypeNameData, setLinkTypeNameData] = useState<string[]>([""]);
+
   const [loading, setloading] = useState(false);
   const [formData, setFormData] = useState({
     link: "",
     platform: "Facebook",
+    type: "",
+    linkTypeName: "",
+    maxCount: 0,
     finishDate: "",
   });
 
@@ -50,6 +58,9 @@ function JobCreate() {
             link: "",
             platform: "Facebook",
             finishDate: "",
+            linkTypeName: "",
+            maxCount: 0,
+            type: "",
           });
         }
       } catch (error: any) {
@@ -61,6 +72,18 @@ function JobCreate() {
       toast.error("Invalid job link. Please enter a valid URL.");
     }
   };
+
+  useEffect(() => {
+    if (formData.type === "post") {
+      setLinkTypeNameData(["Like", "Love", "Haha", "Wow", "Sad", "Angry"]);
+    } else if (formData.type === "page/profile") {
+      setLinkTypeNameData(["AddFriend", "FollowAccount"]);
+    } else if (formData.type === "group") {
+      setLinkTypeNameData(["JoinGroup"]);
+    } else {
+      setLinkTypeNameData([""]);
+    }
+  }, [formData.type]);
 
   return (
     <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -84,22 +107,57 @@ function JobCreate() {
             />
           </div>
 
+          <Select
+            label="Platform"
+            data={["Facebook"]}
+            selectedOption={formData.platform}
+            setSelectedOption={(value: any) =>
+              setFormData((prevData) => ({ ...prevData, platform: value }))
+            }
+            isOptionSelected={isOptionSelected}
+            setIsOptionSelected={setIsOptionSelected}
+            required
+          />
+
+          <Select
+            label="Type"
+            data={["post", "page/profile", "group"]}
+            selectedOption={formData.type}
+            setSelectedOption={(value: any) =>
+              setFormData((prevData) => ({ ...prevData, type: value }))
+            }
+            isOptionSelected={isOptionSelected}
+            setIsOptionSelected={setIsOptionSelected}
+            required
+          />
+
+          <Select
+            label="Objective"
+            data={linkTypeNameData}
+            selectedOption={formData.linkTypeName}
+            setSelectedOption={(value: any) =>
+              setFormData((prevData) => ({ ...prevData, linkTypeName: value }))
+            }
+            isOptionSelected={isOptionSelected}
+            setIsOptionSelected={setIsOptionSelected}
+            required
+          />
+
           <div className="mb-4.5">
             <label className="mb-3 block text-sm font-medium text-black dark:text-white">
-              Platform
+              Reaction count
             </label>
-
-            <select
-              name="platform"
-              id="platform"
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+            <input
+              type="number"
+              name="maxCount"
+              value={formData.maxCount}
               onChange={handleChange}
-              value={formData.platform}
+              placeholder="Enter the reaction count"
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
               required
-            >
-              <option value="">Select platform</option>
-              <option value="Facebook">Facebook</option>
-            </select>
+              min={0}
+              onWheel={(e) => e.currentTarget.blur()}
+            />
           </div>
 
           <div className="mb-4.5">
@@ -114,7 +172,7 @@ function JobCreate() {
               className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
               required
               min={new Date().toISOString().slice(0, 16)}
-              />
+            />
           </div>
 
           <button

@@ -110,7 +110,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
     <div className="flex h-[100vh] w-full items-center justify-center">
       <div className="container mb-24 lg:mb-32">
         <h2 className="my-20 flex items-center justify-center text-3xl font-semibold leading-[115%] text-neutral-900 dark:text-neutral-100 md:text-5xl md:leading-[115%]">
-          Déjà inscrit ?
+          Login
         </h2>
         <div className="mx-auto max-w-md space-y-6">
           {/* ERROR */}
@@ -119,7 +119,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
           <form className="grid grid-cols-1 gap-6" onSubmit={handleSubmit}>
             <label className="block">
               <span className="text-neutral-800 dark:text-neutral-200">
-                Adresse email
+                Email address
               </span>
               <input
                 type="email"
@@ -135,7 +135,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
             </label>
             <label className="block">
               <span className="flex items-center justify-between text-neutral-800 dark:text-neutral-200">
-                Mot de passe
+                Password
               </span>
               <input
                 type="password"
@@ -165,7 +165,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
                   htmlFor="rememberMe"
                   className="text-gray-600 dark:text-gray-400 ml-2 text-sm"
                 >
-                  Rester connecté ?
+                  Stay connected ?
                 </label>
               </div>
             </label>
@@ -197,13 +197,13 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
           {/* ==== */}
           <div className="h-16"></div>
           <span className="block text-center text-xs font-thin text-neutral-700 dark:text-neutral-300">
-            En vous connectant ou en créant un compte, vous acceptez nos{`  `}
+            By logging in or creating an account, you agree to our.{`  `}
             <Link href="/#" className="text-blue-400">
-              conditions générales
+              terms and conditions
             </Link>
-            {`  `} et notre {`  `}
+            {`  `} and {`  `}
             <Link href="/#" className="text-blue-400">
-              politique de confidentialité.
+              privacy policy.
             </Link>
           </span>
         </div>

@@ -97,7 +97,7 @@ function JobDetails() {
               </h3>
               <p className="font-medium">Platform: {Job?.platform}</p>
 
-              <ul className="flex flex-col gap-2 mb-5">
+              <ul className="mb-5 flex flex-col gap-2">
                 <li>
                   <span>Status:</span> {Job?.status}
                 </li>
@@ -189,19 +189,6 @@ function JobDetails() {
                   </label>
                 </div>
               </ul>
-
-              <div className="mx-auto max-w-180">
-                <h4 className="font-semibold text-black dark:text-white">
-                  Description
-                </h4>
-                <p className="mt-4.5">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Pellentesque posuere fermentum urna, eu condimentum mauris
-                  tempus ut. Donec fermentum blandit aliquet. Etiam dictum
-                  dapibus ultricies. Sed vel aliquet libero. Nunc a augue
-                  fermentum, pharetra ligula sed, aliquam lacus.
-                </p>
-              </div>
             </div>
           </div>
         </div>
