@@ -6,9 +6,18 @@ import "@/css/satoshi.css";
 import "@/css/style.css";
 import React, { useEffect, useState } from "react";
 import Loader from "@/components/common/Loader";
-import { Toaster } from "react-hot-toast";
-import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import toast, { Toaster } from "react-hot-toast";
+import {
+  getJwtFromLocalStorage,
+  removeAuthDataFromLocalStorage,
+} from "@/utils/localStorage";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+
+const headers = {
+  Authorization: `JWT ${getJwtFromLocalStorage()}`,
+  "Content-Type": "application/json",
+};
 
 export default function RootLayout({
   children,
@@ -19,8 +28,6 @@ export default function RootLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // const pathname = usePathname();
-
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000);
   }, []);
@@ -28,6 +35,34 @@ export default function RootLayout({
   if (!getJwtFromLocalStorage()) {
     router.push("/login");
   }
+
+  async function checkToken() {
+    try {
+      const response = await axios.get("http://localhost:3001/api/checktoken", {
+        headers,
+      });
+
+      console.log(response.data);
+    } catch (error: any) {
+      if (error.response && error.response.status === 401) {
+        if (error.response.data.message === "Token has expired") {
+          toast.error("Your session has expired. Please log in again.");
+          setTimeout(() => {
+            removeAuthDataFromLocalStorage();
+            window.location.href = "/login";
+          }, 2000);
+        } else {
+          console.error("Error checking token:", error.response.data);
+        }
+      } else {
+        console.error("Error checking token:", error.message);
+      }
+    }
+  }
+
+  useEffect(() => {
+    checkToken();
+  }, [getJwtFromLocalStorage()]);
 
   return (
     <html lang="en">

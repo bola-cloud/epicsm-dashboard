@@ -61,7 +61,6 @@ const ECommerce: React.FC = () => {
 
       if (res.status === 200) {
         setJobs(res.data);
-        console.log(res);
       } else {
         console.error("No Jobs found");
       }

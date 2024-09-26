@@ -25,7 +25,6 @@ const ChatCard = () => {
 
       if (res.status === 200) {
         setUsers(res.data);
-        console.log(res);
       } else {
         console.error("No Users found");
         toast.error("No Users found");
@@ -60,11 +59,11 @@ const ChatCard = () => {
                   height={56}
                   src={user.photo || ""}
                   alt="User"
-                  className="rounded-full object-cover"
+                  className="rounded-full object-cover min-h-14 min-w-14"
                 />
               </div>
 
-              <div className="flex flex-1 items-center justify-between">
+              <div className="flex flex-1 items-center justify-between truncate">
                 <div>
                   <h5 className="font-medium text-black dark:text-white">
                     {user.name}

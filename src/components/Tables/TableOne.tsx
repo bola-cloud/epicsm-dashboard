@@ -98,19 +98,23 @@ const TableOne = () => {
               </div>
 
               <div className="flex items-center justify-center p-2.5 xl:p-5">
-                <p className="text-black dark:text-white">{link.type}</p>
+                <p className="inline-flex rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-medium text-success">
+                  {link.type}
+                </p>
               </div>
 
               <div className="flex items-center justify-center p-2.5 xl:p-5">
-                <p className="text-meta-3">{"Objective"}</p>
+                <p className="text-black dark:text-white">
+                  {link.linkTypeName}
+                </p>
               </div>
 
               <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-                <p className="text-black dark:text-white">{link.likeCount}</p>
+                <p className="text-black dark:text-white">{link.maxCount}</p>
               </div>
 
               <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-                <p className="text-meta-5">{link.linkTypeName}</p>
+                <p className="text-meta-5">{link.likeCount}</p>
               </div>
             </Link>
           ))}

@@ -153,7 +153,7 @@ function UserProfile() {
                   Balance
                 </td>
                 <td className="px-4 py-4 text-black dark:text-white">
-                  {User?.dollars}$
+                  {User?.dollars} $
                 </td>
                 <td className="px-4 py-4"></td>
               </tr>
@@ -162,7 +162,7 @@ function UserProfile() {
                   Daily Reward
                 </td>
                 <td className="px-4 py-4 text-black dark:text-white">
-                  {User?.dailyRewards}$
+                  {User?.dailyRewards}
                 </td>
                 <td className="px-4 py-4">
                   <button

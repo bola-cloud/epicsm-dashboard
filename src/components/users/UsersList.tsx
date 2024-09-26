@@ -27,7 +27,7 @@ const UsersList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const usersPerPage = 2;
+  const usersPerPage = 10;
 
   useEffect(() => {
     const fetchUsers = async () => {

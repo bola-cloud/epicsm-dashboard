@@ -3,11 +3,15 @@ import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
 import {
+  getJwtFromLocalStorage,
   getUserFromLocalStorage,
   removeAuthDataFromLocalStorage,
 } from "@/utils/localStorage";
 import { useRouter } from "next/navigation";
 import { Admins } from "@/types/admins";
+import axios from "axios";
+
+
 
 const DropdownUser = () => {
   const [user, setUser] = useState<Admins>();
@@ -18,6 +22,7 @@ const DropdownUser = () => {
     const storedUser = getUserFromLocalStorage();
     setUser(storedUser);
   }, []);
+
 
   const logout = () => {
     removeAuthDataFromLocalStorage();
@@ -43,7 +48,7 @@ const DropdownUser = () => {
             width={112}
             height={112}
             src={user?.user_image || ""}
-            className="rounded-full w-full h-full object-cover"
+            className="h-full w-full rounded-full object-cover"
             alt="User"
           />
         </span>
@@ -70,7 +75,6 @@ const DropdownUser = () => {
         <div
           className={`absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark`}
         >
-
           {/* <ul className="flex flex-col gap-5 border-b border-stroke px-6 py-7.5 dark:border-strokedark">
             <li>
               <Link
