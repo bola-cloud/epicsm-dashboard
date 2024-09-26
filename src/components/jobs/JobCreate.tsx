@@ -3,9 +3,13 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import MultiSelect from "../FormElements/MultiSelect";
-import SelectGroupOne from "../SelectGroup/SelectGroupOne";
 import Select from "../common/Select";
+import { getJwtFromLocalStorage } from "@/utils/localStorage";
+
+const headers = {
+  Authorization: `JWT ${getJwtFromLocalStorage()}`,
+  "Content-Type": "application/json",
+};
 
 function JobCreate() {
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
@@ -49,6 +53,7 @@ function JobCreate() {
         const response = await axios.post(
           "http://localhost:3001/api/jobs",
           formData,
+          { headers },
         );
 
         if (response.status === 201) {

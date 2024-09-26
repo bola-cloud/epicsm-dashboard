@@ -1104,6 +1104,9 @@ body{
 .w-full{
   width: 100%;
 }
+.min-w-14{
+  min-width: 3.5rem;
+}
 .min-w-47\.5{
   min-width: 11.875rem;
 }
@@ -1115,9 +1118,6 @@ body{
 }
 .min-w-\[220px\]{
   min-width: 220px;
-}
-.min-w-14{
-  min-width: 3.5rem;
 }
 .max-w-180{
   max-width: 45rem;

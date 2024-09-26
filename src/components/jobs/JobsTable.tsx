@@ -42,7 +42,9 @@ const JobsTable = () => {
   async function deleteJob(id: string) {
     try {
       setloading(true);
-      const res = await axios.delete(`http://localhost:3001/api/jobs/${id}`);
+      const res = await axios.delete(`http://localhost:3001/api/jobs/${id}`, {
+        headers,
+      });
       if (res.status === 200) {
         toast.success("Job has been deleted.");
         setrefrech(!refrech);
