@@ -16,25 +16,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/users/page.js"
     ],
-    "/forms/form-layout/page": [
+    "/jobs/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/forms/form-layout/page.js"
-    ],
-    "/forms/form-elements/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/forms/form-elements/page.js"
+      "static/chunks/app/jobs/page.js"
     ],
     "/users/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/users/[id]/page.js"
     ],
-    "/profile/page": [
+    "/jobs/create/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/profile/page.js"
+      "static/chunks/app/jobs/create/page.js"
+    ],
+    "/jobs/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/jobs/[id]/page.js"
     ]
   }
 }

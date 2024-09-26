@@ -1,7 +1,8 @@
 {
+  "/page": "app/page.js",
   "/users/page": "app/users/page.js",
-  "/forms/form-layout/page": "app/forms/form-layout/page.js",
-  "/forms/form-elements/page": "app/forms/form-elements/page.js",
+  "/jobs/page": "app/jobs/page.js",
   "/users/[id]/page": "app/users/[id]/page.js",
-  "/profile/page": "app/profile/page.js"
+  "/jobs/create/page": "app/jobs/create/page.js",
+  "/jobs/[id]/page": "app/jobs/[id]/page.js"
 }

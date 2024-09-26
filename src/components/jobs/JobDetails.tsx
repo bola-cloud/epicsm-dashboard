@@ -19,10 +19,12 @@ function JobDetails() {
 
   async function getJob() {
     try {
-      const res = await axios.get(`http://localhost:3001/api/jobs/${id}`);
+      console.log("Fetching job with ID:", id); // Add this line
+      const res = await axios.get(`http://localhost:3001/api/jobs/user/${id}`);
 
       if (res.status === 200) {
         setJob(res.data);
+        console.log(res);
       } else {
         console.error("No Job found");
         toast.error("No Job found");
@@ -35,7 +37,7 @@ function JobDetails() {
 
   useEffect(() => {
     getJob();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     Job?.isLive ? setEnabled(true) : setEnabled(false);

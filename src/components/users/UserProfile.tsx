@@ -7,7 +7,12 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { User } from "../../types/user";
 import { useParams } from "next/navigation";
-import { Timestamp } from "firebase/firestore";
+import { getJwtFromLocalStorage } from "@/utils/localStorage";
+
+const headers = {
+  Authorization: `JWT ${getJwtFromLocalStorage()}`,
+  "Content-Type": "application/json",
+};
 
 function UserProfile() {
   const { id } = useParams();
@@ -21,6 +26,7 @@ function UserProfile() {
     try {
       const res = await axios.get(
         `http://localhost:3001/api/users/firestore/${id}`,
+        { headers },
       );
 
       if (res.status === 200) {
@@ -60,6 +66,7 @@ function UserProfile() {
         const res = await axios.put(
           `http://localhost:3001/api/users/firestore/updateReward/${User?.id}`,
           { dailyRewards },
+          { headers },
         );
         if (res.status === 200) {
           toast.success(`Daily Reward updated`);
@@ -107,51 +114,103 @@ function UserProfile() {
             {User?.name}
           </h3>
 
-          <div className="mx-auto mt-4 flex max-w-180 flex-col gap-2 text-xl font-medium text-black dark:text-white">
-            <div>
-              <span>Coins: </span>
-              <span>{User?.coins}</span>
-            </div>
+          <table className="mt-5 w-full table-auto">
+            <thead>
+              <tr className="bg-gray-2 text-left dark:bg-meta-4">
+                <th className="min-w-[150px] px-4 py-4 text-center font-medium text-black dark:text-white">
+                  Field
+                </th>
+                <th className="min-w-[150px] px-4 py-4 text-center font-medium text-black dark:text-white">
+                  Value
+                </th>
+                <th className="px-4 py-4 text-center font-medium text-black dark:text-white">
+                  Actions
+                </th>
+              </tr>
+            </thead>
 
-            <div>
-              <span>Balance: </span>
-              <span>{User?.dollars}$</span>
-            </div>
-
-            <div className="flex items-center justify-center gap-3">
-              <div>
-                <span>Daily reward: </span>
-                <span>{User?.dailyRewards}$</span>
-              </div>
-
-              <button
-                className="rounded bg-primary px-3 py-1 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
-                onClick={() => setShowModal(true)}
-              >
-                Update daily reward
-              </button>
-            </div>
-
-            <div>
-              <span>Email: </span>
-              <span>{User?.email}</span>
-            </div>
-
-            <div>
-              <span>Provider: </span>
-              <span>{User?.provider}</span>
-            </div>
-
-            <div>
-              <span>Created: </span>
-              <span>{createdDate ? createdDate.toLocaleString() : "N/A"}</span>
-            </div>
-
-            <div>
-              <span>Last sign in: </span>
-              <span>{LastSignin ? LastSignin.toLocaleString() : "N/A"}</span>
-            </div>
-          </div>
+            <tbody>
+              <tr>
+                <td className="px-4 py-4 font-medium text-black dark:text-white">
+                  Coins
+                </td>
+                <td className="px-4 py-4 text-black dark:text-white">
+                  {User?.coins}
+                </td>
+                <td className="px-4 py-4"></td>
+              </tr>{" "}
+              <tr>
+                <td className="px-4 py-4 font-medium text-black dark:text-white">
+                  UserID
+                </td>
+                <td className="truncate px-4 py-4 text-black dark:text-white">
+                  {User?.id}
+                </td>
+                <td className="px-4 py-4"></td>
+              </tr>
+              <tr>
+                <td className="px-4 py-4 font-medium text-black dark:text-white">
+                  Balance
+                </td>
+                <td className="px-4 py-4 text-black dark:text-white">
+                  {User?.dollars}$
+                </td>
+                <td className="px-4 py-4"></td>
+              </tr>
+              <tr>
+                <td className="px-4 py-4 font-medium text-black dark:text-white">
+                  Daily Reward
+                </td>
+                <td className="px-4 py-4 text-black dark:text-white">
+                  {User?.dailyRewards}$
+                </td>
+                <td className="px-4 py-4">
+                  <button
+                    className="rounded bg-primary px-3 py-1 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
+                    onClick={() => setShowModal(true)}
+                  >
+                    Update daily reward
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-4 font-medium text-black dark:text-white">
+                  Email
+                </td>
+                <td className="px-4 py-4 text-black dark:text-white">
+                  {User?.email}
+                </td>
+                <td className="px-4 py-4"></td>
+              </tr>
+              <tr>
+                <td className="px-4 py-4 font-medium text-black dark:text-white">
+                  Provider
+                </td>
+                <td className="px-4 py-4 text-black dark:text-white">
+                  {User?.provider}
+                </td>
+                <td className="px-4 py-4"></td>
+              </tr>
+              <tr>
+                <td className="px-4 py-4 font-medium text-black dark:text-white">
+                  Created
+                </td>
+                <td className="px-4 py-4 text-black dark:text-white">
+                  {createdDate ? createdDate.toLocaleString() : "N/A"}
+                </td>
+                <td className="px-4 py-4"></td>
+              </tr>
+              <tr>
+                <td className="px-4 py-4 font-medium text-black dark:text-white">
+                  Last Sign In
+                </td>
+                <td className="px-4 py-4 text-black dark:text-white">
+                  {LastSignin ? LastSignin.toLocaleString() : "N/A"}
+                </td>
+                <td className="px-4 py-4"></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
