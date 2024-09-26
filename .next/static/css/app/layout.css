@@ -1164,6 +1164,15 @@ body{
 .max-w-screen-2xl{
   max-width: 1536px;
 }
+.max-w-2xl{
+  max-width: 42rem;
+}
+.max-w-8{
+  max-width: 2rem;
+}
+.max-w-20{
+  max-width: 5rem;
+}
 .flex-1{
   flex: 1 1 0%;
 }
@@ -3093,6 +3102,19 @@ input[type="search"]::-webkit-search-cancel-button{
 
   .sm\:max-w-44{
     max-width: 11rem;
+  }
+
+  .sm\:max-w-0{
+    max-width: 0px;
+  }
+
+  .sm\:max-w-75{
+    max-width: 18.75rem;
+  }
+
+  .sm\:max-w-fit{
+    max-width: -moz-fit-content;
+    max-width: fit-content;
   }
 
   .sm\:grid-cols-2{

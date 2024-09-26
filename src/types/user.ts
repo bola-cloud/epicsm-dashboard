@@ -1,12 +1,23 @@
 export type User = {
   id: string;
   email: string;
-  name?: string;
-  prenom?: string;
+  name: string;
   fcm?: string;
   photo?: string;
   provider?: string;
-  lastSignIn?: Date;
+  lastSignIn?: {
+    _seconds: number;
+    _nanoseconds: number;
+  };
   role: string;
-  created: Date;
+  created: {
+    _seconds: number;
+    _nanoseconds: number;
+  };
+  coins: number;
+  dailyRewards: number;
+  dollars: number;
+  isConfirmed: boolean;
+  banned?: boolean;
+  nextRewardDate?: Date;
 };
