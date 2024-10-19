@@ -25,7 +25,7 @@ function UserProfile() {
   async function getUser() {
     try {
       const res = await axios.get(
-        `http://localhost:3001/api/users/firestore/${id}`,
+        `https://api.epicsm.goviral.ma/api/users/firestore/${id}`,
         { headers },
       );
 
@@ -64,7 +64,7 @@ function UserProfile() {
       try {
         setloading(true);
         const res = await axios.put(
-          `http://localhost:3001/api/users/firestore/updateReward/${User?.id}`,
+          `https://api.epicsm.goviral.ma/api/users/firestore/updateReward/${User?.id}`,
           { dailyRewards },
           { headers },
         );

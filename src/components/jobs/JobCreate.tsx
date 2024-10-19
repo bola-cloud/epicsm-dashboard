@@ -51,7 +51,7 @@ function JobCreate() {
       try {
         setloading(true);
         const response = await axios.post(
-          "http://localhost:3001/api/jobs",
+          "https://api.epicsm.goviral.ma/api/jobs",
           formData,
           { headers },
         );

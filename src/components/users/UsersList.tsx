@@ -34,7 +34,7 @@ const UsersList = () => {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          "http://localhost:3001/api/users/firestore",
+          "https://api.epicsm.goviral.ma/api/users/firestore",
           {
             headers,
             params: {
@@ -67,7 +67,7 @@ const UsersList = () => {
     try {
       setloading(true);
       const res = await axios.delete(
-        `http://localhost:3001/api/users/firestore/${id}`,
+        `https://api.epicsm.goviral.ma/api/users/firestore/${id}`,
         { headers },
       );
       if (res.status === 200) {
@@ -87,7 +87,7 @@ const UsersList = () => {
     try {
       setloading(true);
       const res = await axios.put(
-        `http://localhost:3001/api/users/firestore/ban/${id}`,
+        `https://api.epicsm.goviral.ma/api/users/firestore/ban/${id}`,
         {},
         { headers },
       );
@@ -108,7 +108,7 @@ const UsersList = () => {
     try {
       setloading(true);
       const res = await axios.put(
-        `http://localhost:3001/api/users/firestore/unban/${id}`,
+        `https://api.epicsm.goviral.ma/api/users/firestore/unban/${id}`,
         {},
         { headers },
       );
@@ -130,7 +130,7 @@ const UsersList = () => {
       try {
         setloading(true);
         const res = await axios.put(
-          `http://localhost:3001/api/users/firestore/addbalance/${id}`,
+          `https://api.epicsm.goviral.ma/api/users/firestore/addbalance/${id}`,
           { Balance },
           { headers },
         );

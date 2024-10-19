@@ -1,3 +1,4 @@
+"use client";
 import { Job } from "@/types/jobs";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
 import axios from "axios";
@@ -17,7 +18,7 @@ const TableOne = () => {
 
   async function getJobs() {
     try {
-      const res = await axios.get("http://localhost:3001/api/jobs/latest", {
+      const res = await axios.get("https://api.epicsm.goviral.ma/api/jobs/latest", {
         headers,
       });
 
