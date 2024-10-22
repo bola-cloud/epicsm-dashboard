@@ -106,6 +106,7 @@ function JobDetails() {
                 {Job?._id}
               </h3>
               <p className="font-medium">Platform: {Job?.platform}</p>
+              <p className="font-medium">Country: {Job?.country}</p>
 
               <ul className="mb-5 flex flex-col gap-2">
                 <li>

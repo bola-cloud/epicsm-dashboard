@@ -11,6 +11,7 @@ export interface Job {
   linkTypeName: string;
   maxCount: number;
   platform: string;
+  country: string;
   status: string;
   type?: string | null;
   uid: string;
