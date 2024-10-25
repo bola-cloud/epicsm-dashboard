@@ -120,6 +120,12 @@ function JobDetails() {
                   </li>
                 )}
 
+                {Job?.linkTypeName && (
+                  <li>
+                    <span>Objective: </span>{Job?.linkTypeName}
+                  </li>
+                )}
+
                 {Job?.finishDate && (
                   <li>
                     <span>Finish Date:</span>{" "}

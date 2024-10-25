@@ -41,9 +41,9 @@ function JobCreate() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    const { link, platform, finishDate } = formData;
+    const { link, platform } = formData;
 
-    if (!link || !platform || !finishDate) {
+    if (!link || !platform) {
       toast.error("Please fill all the required fields.");
       return;
     }
@@ -104,7 +104,7 @@ function JobCreate() {
 
   useEffect(() => {
     if (formData.type === "post") {
-      setLinkTypeNameData(["Like", "Love", "Haha", "Wow", "Sad", "Angry"]);
+      setLinkTypeNameData(["Like", "Love", "Care", "Haha", "Wow", "Sad", "Angry"]);
     } else if (formData.type === "page/profile") {
       setLinkTypeNameData(["AddFriend", "FollowAccount"]);
     } else if (formData.type === "group") {
@@ -201,7 +201,7 @@ function JobCreate() {
             />
           </div>
 
-          <div className="mb-4.5">
+          {/* <div className="mb-4.5">
             <label className="mb-3 block text-sm font-medium text-black dark:text-white">
               Finish Date
             </label>
@@ -214,7 +214,7 @@ function JobCreate() {
               required
               min={new Date().toISOString().slice(0, 16)}
             />
-          </div>
+          </div> */}
 
           <button
             disabled={loading}
