@@ -11,11 +11,6 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/users/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/users/[id]/page.js"
-    ],
     "/AppVersion/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
