@@ -1,9 +1,9 @@
 {
   "pages": {
-    "/page": [
+    "/users/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+      "static/chunks/app/users/page.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
@@ -11,30 +11,15 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/login/page": [
+    "/users/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/login/page.js"
+      "static/chunks/app/users/[id]/page.js"
     ],
-    "/users/page": [
+    "/AppVersion/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/users/page.js"
-    ],
-    "/jobs/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/jobs/page.js"
-    ],
-    "/jobs/create/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/jobs/create/page.js"
-    ],
-    "/jobs/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/jobs/[id]/page.js"
+      "static/chunks/app/AppVersion/page.js"
     ],
     "/_not-found/page": [
       "static/chunks/webpack.js",

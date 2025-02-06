@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { User } from "../../types/user";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import { debounce } from "lodash";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -22,46 +23,12 @@ const UsersList = () => {
   const [loading, setloading] = useState(false);
   const [refrech, setrefrech] = useState(false);
   const [Balance, setBalance] = useState<number | null>(null);
-  const [SearchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [Unban, setUnban] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const usersPerPage = 10;
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get(
-          "https://api.epicsm.goviral.ma/api/users/firestore",
-          {
-            headers,
-            params: {
-              page: currentPage,
-              limit: usersPerPage,
-              searchQuery: SearchQuery.trim(),
-            },
-          },
-        );
-
-        console.log(response);
-        if (response.status === 200) {
-          setUsers(response.data.users);
-          setTotalPages(response.data.totalPages);
-        } else {
-          console.error("No users found");
-          toast.error("No users found");
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [currentPage, SearchQuery, refrech]);
 
   async function deleteUser(id: string) {
     try {
@@ -158,15 +125,102 @@ const UsersList = () => {
     }
   }
 
+  // Regular users fetch
+  const fetchUsers = async (page: number) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        "https://api.epicsm.goviral.ma/api/users/firestore",
+        {
+          headers,
+          params: {
+            page,
+            limit: usersPerPage,
+          },
+        },
+      );
+
+      console.log(response);
+
+      if (response.status === 200) {
+        setUsers(response.data.users);
+        setTotalPages(response.data.totalPages);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Failed to fetch users");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Search users
+  const searchUsers = async (query: string, page: number) => {
+    if (!query.trim()) {
+      return fetchUsers(page);
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        "https://api.epicsm.goviral.ma/api/users/firestore/search",
+        {
+          headers,
+          params: {
+            query,
+            page,
+            limit: usersPerPage,
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        setUsers(response.data.users);
+        setTotalPages(response.data.totalPages);
+      }
+    } catch (error) {
+      console.error("Error searching users:", error);
+      toast.error("Failed to search users");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    debounce((query: string) => {
+      setCurrentPage(1); // Reset to first page when searching
+      searchUsers(query, 1);
+    }, 500),
+    [],
+  );
+
+  // Effect for initial load and page changes
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      searchUsers(searchQuery, currentPage);
+    } else {
+      fetchUsers(currentPage);
+    }
+  }, [currentPage,refrech]);
+
+  // Handle search input
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+    debouncedSearch(query);
+  };
+
+  // Pagination handlers
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   };
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      setCurrentPage((prev) => prev - 1);
     }
   };
 
@@ -176,8 +230,8 @@ const UsersList = () => {
         type="text"
         placeholder="Filter by id or name or email"
         className="mb-4 w-full rounded border-[1.5px] border-stroke bg-transparent bg-white px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-        value={SearchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        value={searchQuery}
+        onChange={handleSearchChange}
       />
 
       <div className="col-span-12 rounded-sm border border-stroke bg-white py-6 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
