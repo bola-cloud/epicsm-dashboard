@@ -12,7 +12,7 @@ const AccountsList = () => {
 
   async function getAccounts() {
     try {
-      const res = await axios.get("https://api.epicsm.goviral.ma/api/accounts");
+      const res = await axios.get("https://api.epicsm.goviral.ma/api/v2/accounts");
 
       if (res.status === 200) {
         setAccounts(res.data);

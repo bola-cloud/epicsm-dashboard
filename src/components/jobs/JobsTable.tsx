@@ -23,7 +23,7 @@ const JobsTable = () => {
 
   async function getJobs() {
     try {
-      const res = await axios.get("https://api.epicsm.goviral.ma/api/jobs", {
+      const res = await axios.get("https://api.epicsm.goviral.ma/api/v2/jobs", {
         headers,
       });
 
@@ -42,7 +42,7 @@ const JobsTable = () => {
   async function deleteJob(id: string) {
     try {
       setloading(true);
-      const res = await axios.delete(`https://api.epicsm.goviral.ma/api/jobs/${id}`, {
+      const res = await axios.delete(`https://api.epicsm.goviral.ma/api/v2/jobs/${id}`, {
         headers,
       });
       if (res.status === 200) {

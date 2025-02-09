@@ -79,7 +79,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
     try {
       setLoading(true);
 
-      const response = await axios.post("https://api.epicsm.goviral.ma/api/login", {
+      const response = await axios.post("https://api.epicsm.goviral.ma/api/v2/login", {
         email: email,
         password: password,
         Remember: Remember,

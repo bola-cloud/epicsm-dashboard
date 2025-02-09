@@ -54,7 +54,7 @@ const APKManagement: React.FC = () => {
   const fetchCurrentVersion = async (): Promise<void> => {
     try {
       const response = await axios.get<VersionInfo>(
-        "https://api.epicsm.goviral.ma/api/check-update",
+        "https://api.epicsm.goviral.ma/api/v2/check-update",
         { headers },
       );
       setCurrentVersion(response.data);
@@ -77,7 +77,7 @@ const APKManagement: React.FC = () => {
 
     try {
       await axios.post(
-        "https://api.epicsm.goviral.ma/api/upload-apk",
+        "https://api.epicsm.goviral.ma/api/v2/upload-apk",
         submitData,
         {
           headers: {

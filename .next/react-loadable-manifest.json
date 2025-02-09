@@ -1,1 +1,38 @@
-{}
+{
+  "components/Charts/ChartOne.tsx -> react-apexcharts": {
+    "id": 3865,
+    "files": [
+      "static/chunks/3975359d.03b988c4b077538e.js",
+      "static/chunks/865.72d297612860ea63.js"
+    ]
+  },
+  "components/Charts/ChartTwo.tsx -> react-apexcharts": {
+    "id": 3865,
+    "files": [
+      "static/chunks/3975359d.03b988c4b077538e.js",
+      "static/chunks/865.72d297612860ea63.js"
+    ]
+  },
+  "components/Charts/page.tsx -> @/components/Charts/ChartThree": {
+    "id": 9327,
+    "files": [
+      "static/chunks/3975359d.03b988c4b077538e.js",
+      "static/chunks/327.7b2b2e0059cef014.js"
+    ]
+  },
+  "components/Dashboard/E-commerce.tsx -> @/components/Charts/ChartThree": {
+    "id": 9327,
+    "files": [
+      "static/chunks/3975359d.03b988c4b077538e.js",
+      "static/chunks/327.7b2b2e0059cef014.js"
+    ]
+  },
+  "components/Dashboard/E-commerce.tsx -> @/components/Maps/MapOne": {
+    "id": 2100,
+    "files": [
+      "static/css/2de894d68337b9b0.css",
+      "static/chunks/150.85c3cdcb8d134f8c.js",
+      "static/chunks/100.00372845416837f6.js"
+    ]
+  }
+}

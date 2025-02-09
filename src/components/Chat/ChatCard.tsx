@@ -17,7 +17,7 @@ const ChatCard = () => {
   async function getUsers() {
     try {
       const res = await axios.get(
-        `https://api.epicsm.goviral.ma/api/users/firestore/lastSignIn`,
+        `https://api.epicsm.goviral.ma/api/v2/users/firestore/lastSignIn`,
         {
           headers,
         },

@@ -18,7 +18,7 @@ const TableOne = () => {
 
   async function getJobs() {
     try {
-      const res = await axios.get("https://api.epicsm.goviral.ma/api/jobs/latest", {
+      const res = await axios.get("https://api.epicsm.goviral.ma/api/v2/jobs/latest", {
         headers,
       });
 

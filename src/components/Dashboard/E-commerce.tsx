@@ -38,7 +38,7 @@ const ECommerce: React.FC = () => {
   async function getUsers() {
     try {
       const res = await axios.get(
-        "https://api.epicsm.goviral.ma/api/users/firestore/length",
+        "https://api.epicsm.goviral.ma/api/v2/users/firestore/length",
         { headers },
       );
 
@@ -56,7 +56,7 @@ const ECommerce: React.FC = () => {
   async function getJobs() {
     try {
       const res = await axios.get(
-        "https://api.epicsm.goviral.ma/api/jobs/platform/length",
+        "https://api.epicsm.goviral.ma/api/v2/jobs/platform/length",
         { headers },
       );
 
@@ -75,7 +75,7 @@ const ECommerce: React.FC = () => {
   async function getOnlineUsers() {
     try {
       const res = await axios.get(
-        "https://api.epicsm.goviral.ma/api/jobs/onlineUsers/length",
+        "https://api.epicsm.goviral.ma/api/v2/jobs/onlineUsers/length",
         { headers },
       );
 

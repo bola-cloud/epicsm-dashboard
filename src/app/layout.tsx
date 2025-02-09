@@ -38,7 +38,7 @@ export default function RootLayout({
 
   async function checkToken() {
     try {
-      const response = await axios.get("https://api.epicsm.goviral.ma/api/checktoken", {
+      const response = await axios.get("https://api.epicsm.goviral.ma/api/v2/checktoken", {
         headers,
       });
 

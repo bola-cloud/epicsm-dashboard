@@ -26,7 +26,7 @@ function JobDetails() {
   async function getJob() {
     try {
       console.log("Fetching job with ID:", id); // Add this line
-      const res = await axios.get(`https://api.epicsm.goviral.ma/api/jobs/user/${id}`);
+      const res = await axios.get(`https://api.epicsm.goviral.ma/api/v2/jobs/user/${id}`);
 
       if (res.status === 200) {
         setJob(res.data);
@@ -51,7 +51,7 @@ function JobDetails() {
 
   async function UpdateJob() {
     try {
-      const res = await axios.put(`https://api.epicsm.goviral.ma/api/jobs/${id}`, {
+      const res = await axios.put(`https://api.epicsm.goviral.ma/api/v2/jobs/${id}`, {
         isLive: !enabled,
       }, {
         headers,

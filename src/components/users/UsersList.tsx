@@ -34,7 +34,7 @@ const UsersList = () => {
     try {
       setloading(true);
       const res = await axios.delete(
-        `https://api.epicsm.goviral.ma/api/users/firestore/${id}`,
+        `https://api.epicsm.goviral.ma/api/v2/users/firestore/${id}`,
         { headers },
       );
       if (res.status === 200) {
@@ -54,7 +54,7 @@ const UsersList = () => {
     try {
       setloading(true);
       const res = await axios.put(
-        `https://api.epicsm.goviral.ma/api/users/firestore/ban/${id}`,
+        `https://api.epicsm.goviral.ma/api/v2/users/firestore/ban/${id}`,
         {},
         { headers },
       );
@@ -75,7 +75,7 @@ const UsersList = () => {
     try {
       setloading(true);
       const res = await axios.put(
-        `https://api.epicsm.goviral.ma/api/users/firestore/unban/${id}`,
+        `https://api.epicsm.goviral.ma/api/v2/users/firestore/unban/${id}`,
         {},
         { headers },
       );
@@ -97,7 +97,7 @@ const UsersList = () => {
       try {
         setloading(true);
         const res = await axios.put(
-          `https://api.epicsm.goviral.ma/api/users/firestore/addbalance/${id}`,
+          `https://api.epicsm.goviral.ma/api/v2/users/firestore/addbalance/${id}`,
           { Balance },
           { headers },
         );
@@ -130,7 +130,7 @@ const UsersList = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        "https://api.epicsm.goviral.ma/api/users/firestore",
+        "https://api.epicsm.goviral.ma/api/v2/users/firestore",
         {
           headers,
           params: {
@@ -163,7 +163,7 @@ const UsersList = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        "https://api.epicsm.goviral.ma/api/users/firestore/search",
+        "https://api.epicsm.goviral.ma/api/v2/users/firestore/search",
         {
           headers,
           params: {
