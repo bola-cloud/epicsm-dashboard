@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import { User } from "../../types/user";
 import { useParams } from "next/navigation";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import API from "@/utils/API";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -24,8 +25,8 @@ function UserProfile() {
 
   async function getUser() {
     try {
-      const res = await axios.get(
-        `https://api.epicsm.goviral.ma/api/users/firestore/${id}`,
+      const res = await API.get(
+        `/api/v2/users/firestore/${id}`,
         { headers },
       );
 
@@ -63,8 +64,8 @@ function UserProfile() {
     if (dailyRewards) {
       try {
         setloading(true);
-        const res = await axios.put(
-          `https://api.epicsm.goviral.ma/api/users/firestore/updateReward/${User?.id}`,
+        const res = await API.put(
+          `/api/v2/users/firestore/updateReward/${User?.id}`,
           { dailyRewards },
           { headers },
         );

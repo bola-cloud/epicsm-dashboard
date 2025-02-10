@@ -3,11 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import { Job } from "../../types/jobs";
-import { format } from "date-fns";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import API from "@/utils/API";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -23,7 +22,7 @@ const JobsTable = () => {
 
   async function getJobs() {
     try {
-      const res = await axios.get("https://api.epicsm.goviral.ma/api/jobs", {
+      const res = await API.get("/api/v2/jobs", {
         headers,
       });
 
@@ -42,7 +41,7 @@ const JobsTable = () => {
   async function deleteJob(id: string) {
     try {
       setloading(true);
-      const res = await axios.delete(`https://api.epicsm.goviral.ma/api/jobs/${id}`, {
+      const res = await API.delete(`/api/v2/jobs/${id}`, {
         headers,
       });
       if (res.status === 200) {

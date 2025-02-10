@@ -2,15 +2,13 @@
 
 import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
-import ChartOne from "../Charts/ChartOne";
-import ChartTwo from "../Charts/ChartTwo";
 import ChatCard from "../Chat/ChatCard";
 import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
-import { User } from "@/types/user";
 import axios from "axios";
 import toast from "react-hot-toast/headless";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import API from "@/utils/API";
 
 const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
   ssr: false,
@@ -37,8 +35,8 @@ const ECommerce: React.FC = () => {
 
   async function getUsers() {
     try {
-      const res = await axios.get(
-        "https://api.epicsm.goviral.ma/api/users/firestore/length",
+      const res = await API.get(
+        "/api/v2/users/firestore/length",
         { headers },
       );
 
@@ -55,8 +53,8 @@ const ECommerce: React.FC = () => {
 
   async function getJobs() {
     try {
-      const res = await axios.get(
-        "https://api.epicsm.goviral.ma/api/jobs/platform/length",
+      const res = await API.get(
+        "/api/v2/jobs/platform/length",
         { headers },
       );
 
@@ -75,7 +73,7 @@ const ECommerce: React.FC = () => {
   async function getOnlineUsers() {
     try {
       const res = await axios.get(
-        "https://api.epicsm.goviral.ma/api/jobs/onlineUsers/length",
+        "/api/v2/jobs/onlineUsers/length",
         { headers },
       );
 

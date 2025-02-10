@@ -1,17 +1,15 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import { format } from "date-fns";
 import { useParams } from "next/navigation";
 import { Job } from "@/types/jobs";
-import DefaultLayout from "../Layouts/DefaultLayout";
 import Breadcrumb from "../Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import API from "@/utils/API";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -25,8 +23,7 @@ function JobDetails() {
 
   async function getJob() {
     try {
-      console.log("Fetching job with ID:", id); // Add this line
-      const res = await axios.get(`https://api.epicsm.goviral.ma/api/jobs/user/${id}`);
+      const res = await API.get(`/api/v2/jobs/user/${id}`);
 
       if (res.status === 200) {
         setJob(res.data);
@@ -51,7 +48,7 @@ function JobDetails() {
 
   async function UpdateJob() {
     try {
-      const res = await axios.put(`https://api.epicsm.goviral.ma/api/jobs/${id}`, {
+      const res = await API.put(`/api/v2/jobs/${id}`, {
         isLive: !enabled,
       }, {
         headers,

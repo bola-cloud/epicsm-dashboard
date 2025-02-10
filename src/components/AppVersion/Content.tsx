@@ -10,6 +10,7 @@ import React, {
 import axios, { AxiosError } from "axios";
 import { Upload, CheckCircle } from "lucide-react";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import API from "@/utils/API";
 
 interface VersionInfo {
   version: string;
@@ -53,8 +54,8 @@ const APKManagement: React.FC = () => {
 
   const fetchCurrentVersion = async (): Promise<void> => {
     try {
-      const response = await axios.get<VersionInfo>(
-        "https://api.epicsm.goviral.ma/api/check-update",
+      const response = await API.get<VersionInfo>(
+        "/api/v2/check-update",
         { headers },
       );
       setCurrentVersion(response.data);
@@ -76,8 +77,8 @@ const APKManagement: React.FC = () => {
     }
 
     try {
-      await axios.post(
-        "https://api.epicsm.goviral.ma/api/upload-apk",
+      await API.post(
+        "/api/v2/upload-apk",
         submitData,
         {
           headers: {

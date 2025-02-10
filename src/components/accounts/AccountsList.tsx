@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import { Account } from "../../types/account";
 import { format } from "date-fns";
+import API from "@/utils/API";
 
 const AccountsList = () => {
   const [Accounts, setAccounts] = useState<Account[] | undefined>();
 
   async function getAccounts() {
     try {
-      const res = await axios.get("https://api.epicsm.goviral.ma/api/accounts");
+      const res = await API.get("/api/v2/accounts");
 
       if (res.status === 200) {
         setAccounts(res.data);

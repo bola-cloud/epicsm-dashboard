@@ -6,6 +6,7 @@ import { FC, useState } from "react";
 import axios, { AxiosError } from "axios";
 import { setAuthDataToLocalStorage } from "@/utils/localStorage";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import API from "@/utils/API";
 
 const validationSchema = {
   email: {
@@ -79,7 +80,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
     try {
       setLoading(true);
 
-      const response = await axios.post("https://api.epicsm.goviral.ma/api/login", {
+      const response = await API.post("/api/v2/login", {
         email: email,
         password: password,
         Remember: Remember,
@@ -96,7 +97,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
       // Handle errors
       console.error("Error:", error);
 
-      if ((error as AxiosError).response?.status === 404 ?? false) {
+      if ((error as AxiosError).response?.status === 404) {
         setError("Votre adresse n'est pas reconnue, inscrivez vous.");
       } else {
         setError("Une erreur s'est produite, veuillez réessayer.");

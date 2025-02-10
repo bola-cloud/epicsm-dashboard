@@ -5,6 +5,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { User } from "@/types/user";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import API from "@/utils/API";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -16,8 +17,8 @@ const ChatCard = () => {
 
   async function getUsers() {
     try {
-      const res = await axios.get(
-        `https://api.epicsm.goviral.ma/api/users/firestore/lastSignIn`,
+      const res = await API.get(
+        `/api/v2/users/firestore/lastSignIn`,
         {
           headers,
         },

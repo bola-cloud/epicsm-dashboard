@@ -12,7 +12,7 @@ import {
   removeAuthDataFromLocalStorage,
 } from "@/utils/localStorage";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import API from "@/utils/API";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -38,7 +38,7 @@ export default function RootLayout({
 
   async function checkToken() {
     try {
-      const response = await axios.get("https://api.epicsm.goviral.ma/api/checktoken", {
+      const response = await API.get("/api/v2/checktoken", {
         headers,
       });
 

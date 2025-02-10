@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import { User } from "../../types/user";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
 import { debounce } from "lodash";
+import API from "@/utils/API";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -33,8 +34,8 @@ const UsersList = () => {
   async function deleteUser(id: string) {
     try {
       setloading(true);
-      const res = await axios.delete(
-        `https://api.epicsm.goviral.ma/api/users/firestore/${id}`,
+      const res = await API.delete(
+        `/api/v2/users/firestore/${id}`,
         { headers },
       );
       if (res.status === 200) {
@@ -53,8 +54,8 @@ const UsersList = () => {
   async function BanUser(id: string) {
     try {
       setloading(true);
-      const res = await axios.put(
-        `https://api.epicsm.goviral.ma/api/users/firestore/ban/${id}`,
+      const res = await API.put(
+        `/api/v2/users/firestore/ban/${id}`,
         {},
         { headers },
       );
@@ -74,8 +75,8 @@ const UsersList = () => {
   async function UnBanUser(id: string) {
     try {
       setloading(true);
-      const res = await axios.put(
-        `https://api.epicsm.goviral.ma/api/users/firestore/unban/${id}`,
+      const res = await API.put(
+        `/api/v2/users/firestore/unban/${id}`,
         {},
         { headers },
       );
@@ -96,8 +97,8 @@ const UsersList = () => {
     if (Balance) {
       try {
         setloading(true);
-        const res = await axios.put(
-          `https://api.epicsm.goviral.ma/api/users/firestore/addbalance/${id}`,
+        const res = await API.put(
+          `/api/v2/users/firestore/addbalance/${id}`,
           { Balance },
           { headers },
         );
@@ -129,8 +130,8 @@ const UsersList = () => {
   const fetchUsers = async (page: number) => {
     setIsLoading(true);
     try {
-      const response = await axios.get(
-        "https://api.epicsm.goviral.ma/api/users/firestore",
+      const response = await API.get(
+        "/api/v2/users/firestore",
         {
           headers,
           params: {
@@ -162,8 +163,8 @@ const UsersList = () => {
 
     setIsLoading(true);
     try {
-      const response = await axios.get(
-        "https://api.epicsm.goviral.ma/api/users/firestore/search",
+      const response = await API.get(
+        "/api/v2/users/firestore/search",
         {
           headers,
           params: {
