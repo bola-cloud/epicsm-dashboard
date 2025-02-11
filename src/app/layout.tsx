@@ -38,7 +38,7 @@ export default function RootLayout({
 
   async function checkToken() {
     try {
-      const response = await API.get("/api/v2/checktoken", {
+      const response = await API.get("/api/v3/checktoken", {
         headers,
       });
 

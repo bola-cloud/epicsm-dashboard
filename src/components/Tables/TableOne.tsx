@@ -19,7 +19,7 @@ const TableOne = () => {
 
   async function getJobs() {
     try {
-      const res = await API.get("/api/v2/jobs/latest", {
+      const res = await API.get("/api/v3/jobs/latest", {
         headers,
       });
 

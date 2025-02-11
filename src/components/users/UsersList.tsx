@@ -35,7 +35,7 @@ const UsersList = () => {
     try {
       setloading(true);
       const res = await API.delete(
-        `/api/v2/users/firestore/${id}`,
+        `/api/v3/users/firestore/${id}`,
         { headers },
       );
       if (res.status === 200) {
@@ -55,7 +55,7 @@ const UsersList = () => {
     try {
       setloading(true);
       const res = await API.put(
-        `/api/v2/users/firestore/ban/${id}`,
+        `/api/v3/users/firestore/ban/${id}`,
         {},
         { headers },
       );
@@ -76,7 +76,7 @@ const UsersList = () => {
     try {
       setloading(true);
       const res = await API.put(
-        `/api/v2/users/firestore/unban/${id}`,
+        `/api/v3/users/firestore/unban/${id}`,
         {},
         { headers },
       );
@@ -98,7 +98,7 @@ const UsersList = () => {
       try {
         setloading(true);
         const res = await API.put(
-          `/api/v2/users/firestore/addbalance/${id}`,
+          `/api/v3/users/firestore/addbalance/${id}`,
           { Balance },
           { headers },
         );
@@ -131,7 +131,7 @@ const UsersList = () => {
     setIsLoading(true);
     try {
       const response = await API.get(
-        "/api/v2/users/firestore",
+        "/api/v3/users/firestore",
         {
           headers,
           params: {
@@ -164,7 +164,7 @@ const UsersList = () => {
     setIsLoading(true);
     try {
       const response = await API.get(
-        "/api/v2/users/firestore/search",
+        "/api/v3/users/firestore/search",
         {
           headers,
           params: {

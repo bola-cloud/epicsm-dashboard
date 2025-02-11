@@ -23,7 +23,7 @@ function JobDetails() {
 
   async function getJob() {
     try {
-      const res = await API.get(`/api/v2/jobs/user/${id}`);
+      const res = await API.get(`/api/v3/jobs/user/${id}`);
 
       if (res.status === 200) {
         setJob(res.data);
@@ -48,7 +48,7 @@ function JobDetails() {
 
   async function UpdateJob() {
     try {
-      const res = await API.put(`/api/v2/jobs/${id}`, {
+      const res = await API.put(`/api/v3/jobs/${id}`, {
         isLive: !enabled,
       }, {
         headers,

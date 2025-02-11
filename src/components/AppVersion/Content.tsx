@@ -55,7 +55,7 @@ const APKManagement: React.FC = () => {
   const fetchCurrentVersion = async (): Promise<void> => {
     try {
       const response = await API.get<VersionInfo>(
-        "/api/v2/check-update",
+        "/api/v3/check-update",
         { headers },
       );
       setCurrentVersion(response.data);
@@ -78,7 +78,7 @@ const APKManagement: React.FC = () => {
 
     try {
       await API.post(
-        "/api/v2/upload-apk",
+        "/api/v3/upload-apk",
         submitData,
         {
           headers: {

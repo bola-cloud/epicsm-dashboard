@@ -67,7 +67,7 @@ const Logs = () => {
   const fetchLogs = async (): Promise<void> => {
     try {
       setLoading(true);
-      const { data } = await API.get<LogsResponse>("/api/v2/stats/logs", {
+      const { data } = await API.get<LogsResponse>("/api/v3/stats/logs", {
         params: {
           page,
           limit: 10,

@@ -26,7 +26,7 @@ function UserProfile() {
   async function getUser() {
     try {
       const res = await API.get(
-        `/api/v2/users/firestore/${id}`,
+        `/api/v3/users/firestore/${id}`,
         { headers },
       );
 
@@ -65,7 +65,7 @@ function UserProfile() {
       try {
         setloading(true);
         const res = await API.put(
-          `/api/v2/users/firestore/updateReward/${User?.id}`,
+          `/api/v3/users/firestore/updateReward/${User?.id}`,
           { dailyRewards },
           { headers },
         );
