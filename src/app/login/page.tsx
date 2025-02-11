@@ -80,7 +80,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
     try {
       setLoading(true);
 
-      const response = await API.post("/api/v2/login", {
+      const response = await API.post("/api/v3/login", {
         email: email,
         password: password,
         Remember: Remember,

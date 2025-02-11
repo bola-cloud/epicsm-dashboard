@@ -17,7 +17,7 @@ const ConnectivityChart: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await API.get("/api/v2/stats/connection");
+        const response = await API.get("/api/v3/stats/connection");
 
         setStatistics(response.data.statistics);
         setTotalUsers(response.data.totalUsers);

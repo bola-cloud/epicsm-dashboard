@@ -18,7 +18,7 @@ const WebVersionChart: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await API.get("/api/v2/stats/webview");
+        const response = await API.get("/api/v3/stats/webview");
 
         setStatistics(response.data.statistics);
         setTotalUsers(response.data.totalUsers);

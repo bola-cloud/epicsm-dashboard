@@ -52,7 +52,7 @@ function JobCreate() {
       try {
         setloading(true);
         const response = await axios.post(
-          "https://api.epicsm.goviral.ma/api/v2/jobs",
+          "https://api.epicsm.goviral.ma/api/v3/jobs",
           formData,
           { headers },
         );

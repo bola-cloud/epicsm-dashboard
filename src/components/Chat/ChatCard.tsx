@@ -18,7 +18,7 @@ const ChatCard = () => {
   async function getUsers() {
     try {
       const res = await API.get(
-        `/api/v2/users/firestore/lastSignIn`,
+        `/api/v3/users/firestore/lastSignIn`,
         {
           headers,
         },

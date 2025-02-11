@@ -19,7 +19,7 @@ const ChartThree: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await API.get("/api/v2/stats/version");
+        const response = await API.get("/api/v3/stats/version");
 
         setStatistics(response.data.statistics);
         setTotalUsers(response.data.totalUsers);

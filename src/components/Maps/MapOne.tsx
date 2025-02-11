@@ -28,7 +28,7 @@ const WorldMap = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await API.get("/api/v2/stats/country");
+        const response = await API.get("/api/v3/stats/country");
         setStatistics(response.data.statistics);
         setTotalUsers(response.data.totalUsers);
       } catch (error) {

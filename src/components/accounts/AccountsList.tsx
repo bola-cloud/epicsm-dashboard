@@ -12,7 +12,7 @@ const AccountsList = () => {
 
   async function getAccounts() {
     try {
-      const res = await API.get("/api/v2/accounts");
+      const res = await API.get("/api/v3/accounts");
 
       if (res.status === 200) {
         setAccounts(res.data);

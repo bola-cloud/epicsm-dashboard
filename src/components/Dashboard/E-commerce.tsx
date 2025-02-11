@@ -36,7 +36,7 @@ const ECommerce: React.FC = () => {
   async function getUsers() {
     try {
       const res = await API.get(
-        "/api/v2/users/firestore/length",
+        "/api/v3/users/firestore/length",
         { headers },
       );
 
@@ -54,7 +54,7 @@ const ECommerce: React.FC = () => {
   async function getJobs() {
     try {
       const res = await API.get(
-        "/api/v2/jobs/platform/length",
+        "/api/v3/jobs/platform/length",
         { headers },
       );
 
@@ -72,7 +72,7 @@ const ECommerce: React.FC = () => {
   async function getOnlineUsers() {
     try {
       const res = await API.get(
-        "/api/v2/jobs/onlineUsers/length",
+        "/api/v3/jobs/onlineUsers/length",
         { headers },
       );
 

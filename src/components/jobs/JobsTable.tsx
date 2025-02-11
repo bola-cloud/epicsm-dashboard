@@ -22,7 +22,7 @@ const JobsTable = () => {
 
   async function getJobs() {
     try {
-      const res = await API.get("/api/v2/jobs", {
+      const res = await API.get("/api/v3/jobs", {
         headers,
       });
 
@@ -41,7 +41,7 @@ const JobsTable = () => {
   async function deleteJob(id: string) {
     try {
       setloading(true);
-      const res = await API.delete(`/api/v2/jobs/${id}`, {
+      const res = await API.delete(`/api/v3/jobs/${id}`, {
         headers,
       });
       if (res.status === 200) {
