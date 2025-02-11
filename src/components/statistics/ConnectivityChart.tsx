@@ -89,7 +89,7 @@ const ConnectivityChart: React.FC = () => {
   ];
 
   return (
-    <div className="h-[450px] rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <div className="rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
       <div className="mb-3">
         <h5 className="text-xl font-semibold text-black dark:text-white">
           Connection Type Analytics

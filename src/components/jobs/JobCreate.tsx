@@ -324,7 +324,7 @@ function JobCreate() {
         "Angry",
       ]);
     } else if (formData.type === "page/profile") {
-      setLinkTypeNameData(["AddFriend", "FollowAccount", "Like"]);
+      setLinkTypeNameData(["AddFriend", "FollowAccount", "LikePage"]);
     } else if (formData.type === "group") {
       setLinkTypeNameData(["JoinGroup"]);
     } else {

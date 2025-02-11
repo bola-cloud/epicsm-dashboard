@@ -81,7 +81,7 @@ const VersionChart: React.FC = () => {
   };
 
   return (
-    <div className="h-[450px] rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <div className="rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
       <div className="mb-3 justify-between gap-4 sm:flex">
         <h5 className="text-xl font-semibold text-black dark:text-white">
           Version Analytics
@@ -96,7 +96,7 @@ const VersionChart: React.FC = () => {
 
       <div className="-mx-8 flex flex-wrap items-center justify-center gap-y-3">
         {statistics.map((stat, index) => (
-          <div key={stat._id} className="w-full px-8 sm:w-1/2">
+          <div key={stat._id} className="w-full px-8">
             <div className="flex w-full items-center">
               <span
                 className="mr-2 block h-3 w-full max-w-3 rounded-full"
@@ -104,7 +104,7 @@ const VersionChart: React.FC = () => {
                   backgroundColor: chartColors[index % chartColors.length],
                 }}
               ></span>
-              <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
+              <p className="flex items-center gap-2 w-full justify-between text-sm font-medium text-black dark:text-white">
                 <span>v{stat._id}</span>
                 <span>{percentages[index]}%</span>
               </p>
