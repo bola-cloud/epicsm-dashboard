@@ -68,11 +68,10 @@ const ECommerce: React.FC = () => {
       toast.error("Failed to fetch Jobs");
     }
   }
-
   
   async function getOnlineUsers() {
     try {
-      const res = await axios.get(
+      const res = await API.get(
         "/api/v2/jobs/onlineUsers/length",
         { headers },
       );
