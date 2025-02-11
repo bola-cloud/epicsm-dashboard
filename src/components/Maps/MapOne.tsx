@@ -10,12 +10,6 @@ import {
   ZoomableGroup,
 } from "react-simple-maps";
 
-const COUNTRY_DATA = [
-  { country: "ma", value: 2 },
-  { country: "us", value: 1 },
-  { country: "fr", value: 2 },
-];
-
 interface CountryStatistic {
   country: string;
   value: number;
@@ -24,6 +18,7 @@ interface CountryStatistic {
 const WorldMap = () => {
   const [statistics, setStatistics] = useState<CountryStatistic[]>([]);
   const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,7 +30,6 @@ const WorldMap = () => {
         console.error("Error fetching country statistics:", error);
       }
     };
-
     fetchData();
   }, []);
 
@@ -51,16 +45,28 @@ const WorldMap = () => {
     [],
   );
 
-  const getColorScale = (value: number | undefined) => {
-    if (!value) return "#e5e7eb";
+  const getColorScale = (value: number) => {
+    if (!value || value === 0) return "#e5e7eb";
     const baseColor = [59, 130, 246];
     const maxUsers = Math.max(...statistics.map((d) => d.value));
     const intensity = value / maxUsers;
     return `rgb(${baseColor.map((c) => Math.round(c * intensity)).join(", ")})`;
   };
 
+  const getMoroccoStats = () => {
+    const moroccoData =
+      statistics.find((c) => c.country.toLowerCase() === "ma")?.value || 0;
+    const saharaData =
+      statistics.find((c) => c.country.toLowerCase() === "eh")?.value || 0;
+    const totalValue = moroccoData + saharaData;
+    return {
+      value: totalValue,
+      color: getColorScale(moroccoData),
+    };
+  };
+
   return (
-    <div className="relative overflow-hidden h-[450px] w-full rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-5">
+    <div className="relative h-[450px] w-full overflow-hidden rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-5">
       <div className="mb-3 justify-between gap-4 sm:flex">
         <h5 className="text-xl font-semibold text-black dark:text-white">
           World map
@@ -93,9 +99,32 @@ const WorldMap = () => {
               geographies.map((geo) => {
                 const countryName = geo.properties.name;
                 const countryCode = NAME_TO_COUNTRY[countryName];
-                const countryData = statistics.find(
-                  (c) => c.country === countryCode,
-                );
+
+                const isMoroccoRegion =
+                  countryName === "Morocco" || countryName === "W. Sahara";
+                let moroccoStats;
+                let value;
+                let displayName;
+                let fillColor;
+
+                if (isMoroccoRegion) {
+                  moroccoStats = getMoroccoStats();
+                  value = moroccoStats.value;
+                  displayName = "Morocco";
+                  fillColor = moroccoStats.color;
+                } else {
+                  const countryData = statistics.find(
+                    (c) =>
+                      c.country.toLowerCase() === countryCode?.toLowerCase(),
+                  );
+                  value = countryData?.value || 0;
+                  displayName = countryName;
+                  fillColor = getColorScale(value);
+                }
+
+                const isHovered = isMoroccoRegion
+                  ? hoveredRegion === "Morocco"
+                  : hoveredRegion === countryName;
 
                 return (
                   <Geography
@@ -103,12 +132,14 @@ const WorldMap = () => {
                     geography={geo}
                     className="outline-none transition-colors duration-200"
                     onMouseEnter={(evt) => {
-                      const name =
-                        geo.properties.NAME || geo.properties.name || "Unknown";
+                      setHoveredRegion(
+                        isMoroccoRegion ? "Morocco" : countryName,
+                      );
                       setTooltip({
-                        content: countryData
-                          ? `${name} (${countryData.value} ${countryData.value > 1 ? "users" : "user"})`
-                          : name,
+                        content:
+                          value > 0
+                            ? `${displayName} (${value} ${value > 1 ? "users" : "user"})`
+                            : displayName,
                         x: evt.pageX,
                         y: evt.pageY,
                         show: true,
@@ -121,26 +152,27 @@ const WorldMap = () => {
                         y: evt.pageY,
                       }));
                     }}
-                    onMouseLeave={() =>
-                      setTooltip((prev) => ({ ...prev, show: false }))
-                    }
+                    onMouseLeave={() => {
+                      setHoveredRegion(null);
+                      setTooltip((prev) => ({ ...prev, show: false }));
+                    }}
                     style={{
                       default: {
-                        fill: getColorScale(countryData?.value),
-                        stroke: "#fff",
-                        strokeWidth: 0.5,
+                        fill: isHovered ? "#d1d5db" : fillColor,
+                        stroke: isMoroccoRegion ? "transparent" : "#fff",
+                        strokeWidth: isMoroccoRegion ? 0 : 0.5,
                         outline: "none",
                       },
                       hover: {
-                        fill: countryData ? "#3f51f4" : "#d1d5db",
-                        stroke: "#fff",
-                        strokeWidth: 0.5,
+                        fill: "#d1d5db",
+                        stroke: isMoroccoRegion ? "transparent" : "#fff",
+                        strokeWidth: isMoroccoRegion ? 0 : 0.5,
                         outline: "none",
                       },
                       pressed: {
-                        fill: countryData ? "#1b2474" : "#9ca3af",
-                        stroke: "#fff",
-                        strokeWidth: 0.5,
+                        fill: "#9ca3af",
+                        stroke: isMoroccoRegion ? "transparent" : "#fff",
+                        strokeWidth: isMoroccoRegion ? 0 : 0.5,
                         outline: "none",
                       },
                     }}
