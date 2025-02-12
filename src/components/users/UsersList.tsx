@@ -29,15 +29,15 @@ const UsersList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [ButtonLoading, setButtonLoading] = useState(false);
   const usersPerPage = 10;
 
   async function deleteUser(id: string) {
     try {
       setloading(true);
-      const res = await API.delete(
-        `/api/v3/users/firestore/${id}`,
-        { headers },
-      );
+      const res = await API.delete(`/api/v3/users/firestore/${id}`, {
+        headers,
+      });
       if (res.status === 200) {
         toast.success("User has been deleted.");
         setrefrech(!refrech);
@@ -130,16 +130,13 @@ const UsersList = () => {
   const fetchUsers = async (page: number) => {
     setIsLoading(true);
     try {
-      const response = await API.get(
-        "/api/v3/users/firestore",
-        {
-          headers,
-          params: {
-            page,
-            limit: usersPerPage,
-          },
+      const response = await API.get("/api/v3/users/firestore", {
+        headers,
+        params: {
+          page,
+          limit: usersPerPage,
         },
-      );
+      });
 
       console.log(response);
 
@@ -163,17 +160,14 @@ const UsersList = () => {
 
     setIsLoading(true);
     try {
-      const response = await API.get(
-        "/api/v3/users/firestore/search",
-        {
-          headers,
-          params: {
-            query,
-            page,
-            limit: usersPerPage,
-          },
+      const response = await API.get("/api/v3/users/firestore/search", {
+        headers,
+        params: {
+          query,
+          page,
+          limit: usersPerPage,
         },
-      );
+      });
 
       if (response.status === 200) {
         setUsers(response.data.users);
@@ -203,7 +197,7 @@ const UsersList = () => {
     } else {
       fetchUsers(currentPage);
     }
-  }, [currentPage,refrech]);
+  }, [currentPage, refrech]);
 
   // Handle search input
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,8 +219,41 @@ const UsersList = () => {
     }
   };
 
+  // Export users
+  async function handleExportCSV() {
+    try {
+      setButtonLoading(true);
+      const response = await API.get("/api/v3/users/users/export", {
+        responseType: "blob",
+        headers,
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "users.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error exporting users:", error);
+    } finally {
+      setButtonLoading(false);
+    }
+  }
+
   return (
     <section>
+      <div className="mb-4 flex w-full justify-end">
+        <button
+          onClick={handleExportCSV}
+          className="flex justify-center rounded bg-primary px-4 py-2 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
+          disabled={ButtonLoading}
+        >
+          {ButtonLoading ? "Downloading" : "Export Users"}
+        </button>
+      </div>
+
       <input
         type="text"
         placeholder="Filter by id or name or email"
