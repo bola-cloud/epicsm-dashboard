@@ -1,30 +1,6 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-<<<<<<< HEAD
-  "/statistics/page": "app/statistics/page.js"
-=======
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/login/page": "app/login/page.js",
-  "/calendar/page": "app/calendar/page.js",
-  "/accounts/page": "app/accounts/page.js",
-  "/chart/page": "app/chart/page.js",
-  "/AppVersion/page": "app/AppVersion/page.js",
-  "/jobs/[id]/page": "app/jobs/[id]/page.js",
-  "/forms/form-elements/page": "app/forms/form-elements/page.js",
-  "/forms/form-layout/page": "app/forms/form-layout/page.js",
-  "/auth/signup/page": "app/auth/signup/page.js",
-  "/jobs/page": "app/jobs/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/logs/page": "app/logs/page.js",
-  "/statistics/page": "app/statistics/page.js",
-  "/tables/page": "app/tables/page.js",
-  "/ui/alerts/page": "app/ui/alerts/page.js",
-  "/users/[id]/page": "app/users/[id]/page.js",
   "/page": "app/page.js",
-  "/jobs/create/page": "app/jobs/create/page.js",
-  "/ui/buttons/page": "app/ui/buttons/page.js",
-  "/auth/signin/page": "app/auth/signin/page.js",
-  "/settings/page": "app/settings/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/users/page": "app/users/page.js"
->>>>>>> b3e8745f85570a0f1d0bf419abce9f58d49139c3
 }

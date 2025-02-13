@@ -1,42 +1,14 @@
-<<<<<<< HEAD
-{}
-=======
 {
-  "components/Charts/ChartOne.tsx -> react-apexcharts": {
-    "id": 8300,
+  "components\\Dashboard\\E-commerce.tsx -> @/components/Charts/ChartThree": {
+    "id": "components\\Dashboard\\E-commerce.tsx -> @/components/Charts/ChartThree",
     "files": [
-      "static/chunks/3975359d-291e224fa49333c6.js",
-      "static/chunks/865.8942c02381ebe5ba.js"
+      "static/chunks/_app-pages-browser_src_components_Charts_ChartThree_tsx.js"
     ]
   },
-  "components/Charts/ChartTwo.tsx -> react-apexcharts": {
-    "id": 8300,
+  "components\\Dashboard\\E-commerce.tsx -> @/components/Maps/MapOne": {
+    "id": "components\\Dashboard\\E-commerce.tsx -> @/components/Maps/MapOne",
     "files": [
-      "static/chunks/3975359d-291e224fa49333c6.js",
-      "static/chunks/865.8942c02381ebe5ba.js"
-    ]
-  },
-  "components/Charts/page.tsx -> @/components/Charts/ChartThree": {
-    "id": 9327,
-    "files": [
-      "static/chunks/3975359d-291e224fa49333c6.js",
-      "static/chunks/472-6cdddb6f50d1e3be.js",
-      "static/chunks/327.d23b5f551645a095.js"
-    ]
-  },
-  "components/Dashboard/E-commerce.tsx -> @/components/Charts/ChartThree": {
-    "id": 9327,
-    "files": [
-      "static/chunks/3975359d-291e224fa49333c6.js",
-      "static/chunks/32.917f43637827485c.js"
-    ]
-  },
-  "components/Dashboard/E-commerce.tsx -> @/components/Maps/MapOne": {
-    "id": 3854,
-    "files": [
-      "static/chunks/605-e6fe2d77ad1e8190.js",
-      "static/chunks/854.cece67c05892691d.js"
+      "static/chunks/_app-pages-browser_src_components_Maps_MapOne_tsx.js"
     ]
   }
 }
->>>>>>> b3e8745f85570a0f1d0bf419abce9f58d49139c3

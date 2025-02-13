@@ -1,9 +1,1 @@
-<<<<<<< HEAD
-{
-  "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
-  "/_document": "pages/_document.js"
-}
-=======
-{"/_app":"pages/_app.js","/_error":"pages/_error.js","/_document":"pages/_document.js","/404":"pages/404.html"}
->>>>>>> b3e8745f85570a0f1d0bf419abce9f58d49139c3
+{}
