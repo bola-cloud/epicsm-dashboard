@@ -103,8 +103,8 @@ const WorldMap = () => {
                 const isMoroccoRegion =
                   countryName === "Morocco" || countryName === "W. Sahara";
                 let moroccoStats;
-                let value;
-                let displayName;
+                let value: number = 0;
+                let displayName: string = "";
                 let fillColor;
 
                 if (isMoroccoRegion) {
