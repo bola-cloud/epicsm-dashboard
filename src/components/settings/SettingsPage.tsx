@@ -11,6 +11,9 @@ export interface Settings {
   executionMethods: string[];
   reportErrors: boolean;
   reportHtml: boolean;
+  mimicScroll: boolean;
+  rt: number;
+  rrt: number;
 }
 
 const headers = {
@@ -24,6 +27,9 @@ function SettingsPage() {
     executionMethods: [""],
     reportErrors: false,
     reportHtml: false,
+    mimicScroll: false,
+    rt: 0,
+    rrt: 0,
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -127,6 +133,44 @@ function SettingsPage() {
             </select>
           </div>
 
+          <div>
+            <label
+              htmlFor="rt"
+              className="text-gray-700 mb-1 block text-sm font-medium"
+            >
+              Range Time (milliseconds)
+            </label>
+            <input
+              type="number"
+              id="rt"
+              min="0"
+              value={settings.rt}
+              onChange={(e) =>
+                setSettings({ ...settings, rt: parseInt(e.target.value) || 0 })
+              }
+              className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="rrt"
+              className="text-gray-700 mb-1 block text-sm font-medium"
+            >
+              Random Range Time (milliseconds)
+            </label>
+            <input
+              type="number"
+              id="rrt"
+              min="0"
+              value={settings.rrt}
+              onChange={(e) =>
+                setSettings({ ...settings, rrt: parseInt(e.target.value) || 0 })
+              }
+              className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
           <div className="flex items-center justify-between">
             <label
               htmlFor="reportErrors"
@@ -147,6 +191,7 @@ function SettingsPage() {
               <div className="peer h-6 w-11 rounded-full bg-[#dbdbdb] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-[#808080] after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
             </label>
           </div>
+
           <div className="flex items-center justify-between">
             <label
               htmlFor="reportHtml"
@@ -161,6 +206,27 @@ function SettingsPage() {
                 checked={settings.reportHtml}
                 onChange={(e) =>
                   setSettings({ ...settings, reportHtml: e.target.checked })
+                }
+                className="peer sr-only"
+              />
+              <div className="peer h-6 w-11 rounded-full bg-[#dbdbdb] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-[#808080] after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="mimicScroll"
+              className="text-gray-700 text-sm font-medium"
+            >
+              Mimic Scroll
+            </label>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                id="mimicScroll"
+                checked={settings.mimicScroll}
+                onChange={(e) =>
+                  setSettings({ ...settings, mimicScroll: e.target.checked })
                 }
                 className="peer sr-only"
               />

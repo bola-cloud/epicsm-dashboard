@@ -137,10 +137,10 @@ const ExecutionMethodsManager: React.FC = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="mx-auto space-y-8 p-8">
-      <div className="flex items-center flex-col sm:flex-row justify-between">
+      <div className="flex flex-col items-center justify-between sm:flex-row">
         <h2 className="text-gray-900 text-2xl font-semibold">
           Execution Methods
         </h2>
@@ -175,7 +175,7 @@ const ExecutionMethodsManager: React.FC = () => {
         </div>
       )}
 
-      <div className="divide-gray-200 border-gray-200 divide-y rounded-lg border bg-white shadow">
+      <div className="divide-y divide-black/20 rounded-lg bg-white shadow">
         {methods.map((method) => (
           <div
             key={method._id}
