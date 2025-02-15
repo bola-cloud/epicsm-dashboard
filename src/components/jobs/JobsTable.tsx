@@ -15,10 +15,19 @@ const headers = {
 
 const JobsTable = () => {
   const [Jobs, setJobs] = useState<Job[] | undefined>();
+  const [filteredJobs, setFilteredJobs] = useState<Job[] | undefined>();
   const [ShowModal, setShowModal] = useState(false);
   const [JobId, setJobId] = useState("");
   const [loading, setloading] = useState(false);
   const [refrech, setrefrech] = useState(false);
+
+  // Filter states
+  const [platformFilter, setPlatformFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [minLikes, setMinLikes] = useState("");
+  const [jobIdFilter, setJobIdFilter] = useState("");
 
   async function getJobs() {
     try {
@@ -61,13 +70,146 @@ const JobsTable = () => {
     getJobs();
   }, [refrech]);
 
+  useEffect(() => {
+    if (!Jobs) return;
+
+    let filtered = [...Jobs];
+
+    if (platformFilter) {
+      filtered = filtered.filter((job) =>
+        job.platform.toLowerCase().includes(platformFilter.toLowerCase()),
+      );
+    }
+
+    if (statusFilter) {
+      filtered = filtered.filter((job) => job.status === statusFilter);
+    }
+
+    if (startDate) {
+      filtered = filtered.filter(
+        (job) => new Date(job.datePublished) >= new Date(startDate),
+      );
+    }
+
+    if (endDate) {
+      filtered = filtered.filter(
+        (job) => new Date(job.datePublished) <= new Date(endDate),
+      );
+    }
+
+    if (minLikes) {
+      filtered = filtered.filter((job) => job.likeCount >= parseInt(minLikes));
+    }
+
+    if (jobIdFilter) {
+      filtered = filtered.filter((job) =>
+        job.jobId.toLowerCase().includes(jobIdFilter.toLowerCase()),
+      );
+    }
+
+    setFilteredJobs(filtered);
+  }, [
+    Jobs,
+    platformFilter,
+    statusFilter,
+    startDate,
+    endDate,
+    minLikes,
+    jobIdFilter,
+  ]);
+
+  const clearFilters = () => {
+    setPlatformFilter("");
+    setStatusFilter("");
+    setStartDate("");
+    setEndDate("");
+    setMinLikes("");
+    setJobIdFilter("");
+  };
+
   return (
     <>
       <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-        <div className="mb-4 flex w-full items-end justify-end">
+
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Platform</label>
+            <input
+              type="text"
+              value={platformFilter}
+              onChange={(e) => setPlatformFilter(e.target.value)}
+              className="rounded-lg border border-stroke px-3 py-2 text-black"
+              placeholder="Filter by platform"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Status</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="rounded-lg border border-stroke px-3 py-2 text-black"
+            >
+              <option value="">All</option>
+              <option value="Active">Active</option>
+              <option value="Deleted">Deleted</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Job ID</label>
+            <input
+              type="text"
+              value={jobIdFilter}
+              onChange={(e) => setJobIdFilter(e.target.value)}
+              className="rounded-lg border border-stroke px-3 py-2 text-black"
+              placeholder="Filter by Job ID"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="rounded-lg border border-stroke px-3 py-2 text-black"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="rounded-lg border border-stroke px-3 py-2 text-black"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Minimum Likes</label>
+            <input
+              type="number"
+              value={minLikes}
+              onChange={(e) => setMinLikes(e.target.value)}
+              className="rounded-lg border border-stroke px-3 py-2 text-black"
+              placeholder="Min likes"
+            />
+          </div>
+        </div>
+
+        <div className="mb-6 flex justify-between">
+          <button
+            onClick={clearFilters}
+            className="bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg px-4 py-2 text-sm font-medium"
+          >
+            Clear Filters
+          </button>
+
           <Link
             href="/jobs/create"
-            className="inline-flex items-end justify-end rounded-full bg-primary px-10 py-3 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+            className="inline-flex items-center rounded-full bg-primary px-10 py-3 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
           >
             Add new job
           </Link>
@@ -112,11 +254,11 @@ const JobsTable = () => {
               </div>
             </div>
 
-            {Jobs &&
-              Jobs.map((link, key) => (
+            {filteredJobs &&
+              filteredJobs.map((link, key) => (
                 <div
                   className={`grid grid-cols-3 hover:bg-slate-100/50 sm:grid-cols-6 ${
-                    key === Jobs.length - 1
+                    key === filteredJobs.length - 1
                       ? ""
                       : "border-b border-stroke dark:border-strokedark"
                   }`}
