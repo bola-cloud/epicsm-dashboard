@@ -24,10 +24,10 @@ const JobsTable = () => {
   // Filter states
   const [platformFilter, setPlatformFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [publishDate, setPublishDate] = useState("");
   const [minLikes, setMinLikes] = useState("");
   const [jobIdFilter, setJobIdFilter] = useState("");
+  const [isLive, setIsLive] = useState(false);
 
   async function getJobs() {
     try {
@@ -85,15 +85,12 @@ const JobsTable = () => {
       filtered = filtered.filter((job) => job.status === statusFilter);
     }
 
-    if (startDate) {
+    if (publishDate) {
+      const selectedDate = new Date(publishDate);
       filtered = filtered.filter(
-        (job) => new Date(job.datePublished) >= new Date(startDate),
-      );
-    }
-
-    if (endDate) {
-      filtered = filtered.filter(
-        (job) => new Date(job.datePublished) <= new Date(endDate),
+        (job) =>
+          new Date(job.datePublished).toDateString() ===
+          selectedDate.toDateString(),
       );
     }
 
@@ -107,30 +104,33 @@ const JobsTable = () => {
       );
     }
 
+    if (isLive) {
+      filtered = filtered.filter((job) => job.status === "Active");
+    }
+
     setFilteredJobs(filtered);
   }, [
     Jobs,
     platformFilter,
     statusFilter,
-    startDate,
-    endDate,
+    publishDate,
     minLikes,
     jobIdFilter,
+    isLive,
   ]);
 
   const clearFilters = () => {
     setPlatformFilter("");
     setStatusFilter("");
-    setStartDate("");
-    setEndDate("");
+    setPublishDate("");
     setMinLikes("");
     setJobIdFilter("");
+    setIsLive(false);
   };
 
   return (
     <>
       <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Platform</label>
@@ -168,21 +168,11 @@ const JobsTable = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Start Date</label>
+            <label className="text-sm font-medium">Publish Date</label>
             <input
               type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="rounded-lg border border-stroke px-3 py-2 text-black"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              value={publishDate}
+              onChange={(e) => setPublishDate(e.target.value)}
               className="rounded-lg border border-stroke px-3 py-2 text-black"
             />
           </div>
@@ -196,6 +186,21 @@ const JobsTable = () => {
               className="rounded-lg border border-stroke px-3 py-2 text-black"
               placeholder="Min likes"
             />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Live Jobs</label>
+            <div className="flex items-center">
+              <label className="relative inline-flex cursor-pointer items-center">
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={isLive}
+                  onChange={(e) => setIsLive(e.target.checked)}
+                />
+                <div className="bg-gray after:border-gray peer h-6 w-11 rounded-full after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+              </label>
+            </div>
           </div>
         </div>
 
