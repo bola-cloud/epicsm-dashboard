@@ -28,6 +28,9 @@ const JobsTable = () => {
   const [minLikes, setMinLikes] = useState("");
   const [jobIdFilter, setJobIdFilter] = useState("");
   const [isLive, setIsLive] = useState(false);
+  const [linkTypeNameFilter, setLinkTypeNameFilter] = useState("");
+  const [minMaxCount, setMinMaxCount] = useState("");
+  const [uidFilter, setUidFilter] = useState("");
 
   async function getJobs() {
     try {
@@ -108,6 +111,23 @@ const JobsTable = () => {
       filtered = filtered.filter((job) => job.status === "Active");
     }
 
+    // New filters
+    if (linkTypeNameFilter) {
+      filtered = filtered.filter((job) =>
+        job.linkTypeName.toLowerCase().includes(linkTypeNameFilter.toLowerCase()),
+      );
+    }
+
+    if (minMaxCount) {
+      filtered = filtered.filter((job) => job.maxCount >= parseInt(minMaxCount));
+    }
+
+    if (uidFilter) {
+      filtered = filtered.filter((job) =>
+        job.uid.toLowerCase().includes(uidFilter.toLowerCase()),
+      );
+    }
+
     setFilteredJobs(filtered);
   }, [
     Jobs,
@@ -117,6 +137,9 @@ const JobsTable = () => {
     minLikes,
     jobIdFilter,
     isLive,
+    linkTypeNameFilter,
+    minMaxCount,
+    uidFilter,
   ]);
 
   const clearFilters = () => {
@@ -126,12 +149,15 @@ const JobsTable = () => {
     setMinLikes("");
     setJobIdFilter("");
     setIsLive(false);
+    setLinkTypeNameFilter("");
+    setMinMaxCount("");
+    setUidFilter("");
   };
 
   return (
     <>
       <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Platform</label>
             <input
@@ -185,6 +211,39 @@ const JobsTable = () => {
               onChange={(e) => setMinLikes(e.target.value)}
               className="rounded-lg border border-stroke px-3 py-2 text-black"
               placeholder="Min likes"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Link Type</label>
+            <input
+              type="text"
+              value={linkTypeNameFilter}
+              onChange={(e) => setLinkTypeNameFilter(e.target.value)}
+              className="rounded-lg border border-stroke px-3 py-2 text-black"
+              placeholder="Filter by link type"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Minimum Max Count</label>
+            <input
+              type="number"
+              value={minMaxCount}
+              onChange={(e) => setMinMaxCount(e.target.value)}
+              className="rounded-lg border border-stroke px-3 py-2 text-black"
+              placeholder="Min max count"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">UID</label>
+            <input
+              type="text"
+              value={uidFilter}
+              onChange={(e) => setUidFilter(e.target.value)}
+              className="rounded-lg border border-stroke px-3 py-2 text-black"
+              placeholder="Filter by UID"
             />
           </div>
 
