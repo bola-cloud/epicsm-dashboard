@@ -20,11 +20,13 @@ const JobsTable = () => {
   const [JobId, setJobId] = useState("");
   const [loading, setloading] = useState(false);
   const [refrech, setrefrech] = useState(false);
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
 
   // Filter states
   const [platformFilter, setPlatformFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [publishDate, setPublishDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [minLikes, setMinLikes] = useState("");
   const [jobIdFilter, setJobIdFilter] = useState("");
   const [isLive, setIsLive] = useState(false);
@@ -51,23 +53,53 @@ const JobsTable = () => {
   }
 
   async function deleteJob(id: string) {
+    await deleteJobs([id]);
+  }
+
+  async function deleteJobs(ids: string[]) {
     try {
       setloading(true);
-      const res = await API.delete(`/api/v3/jobs/${id}`, {
+
+      const res = await API.delete("/api/v3/jobs", {
         headers,
+        data: { jobIds: ids },
       });
+
       if (res.status === 200) {
-        toast.success("Job has been deleted.");
+        toast.success(`Successfully deleted ${res.data.deletedCount} jobs`);
         setrefrech(!refrech);
         setShowModal(false);
+        setSelectedJobs([]);
+      } else {
+        toast.error("Failed to delete jobs");
       }
     } catch (error) {
-      console.error("Failed to delete job", error);
-      toast.error("Failed to delete job");
+      console.error("Failed to delete jobs", error);
+      toast.error("Failed to delete jobs");
     } finally {
       setloading(false);
     }
   }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && filteredJobs) {
+      setSelectedJobs(filteredJobs.map((job) => job._id));
+    } else {
+      setSelectedJobs([]);
+    }
+  };
+
+  const handleUnSelectAll = () => {
+    setSelectedJobs([]);
+  };
+
+  const handleSelectJob = (jobId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedJobs([...selectedJobs, jobId]);
+    } else {
+      setSelectedJobs(selectedJobs.filter((id) => id !== jobId));
+    }
+  };
 
   useEffect(() => {
     getJobs();
@@ -88,13 +120,25 @@ const JobsTable = () => {
       filtered = filtered.filter((job) => job.status === statusFilter);
     }
 
-    if (publishDate) {
-      const selectedDate = new Date(publishDate);
-      filtered = filtered.filter(
-        (job) =>
-          new Date(job.datePublished).toDateString() ===
-          selectedDate.toDateString(),
-      );
+    if (startDate || endDate) {
+      filtered = filtered.filter((job) => {
+        const jobDate = new Date(job.datePublished);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+
+        if (start) start.setHours(0, 0, 0, 0);
+        if (end) end.setHours(23, 59, 59, 999);
+        jobDate.setHours(0, 0, 0, 0);
+
+        if (start && end) {
+          return jobDate >= start && jobDate <= end;
+        } else if (start) {
+          return jobDate >= start;
+        } else if (end) {
+          return jobDate <= end;
+        }
+        return true;
+      });
     }
 
     if (minLikes) {
@@ -111,15 +155,18 @@ const JobsTable = () => {
       filtered = filtered.filter((job) => job.status === "Active");
     }
 
-    // New filters
     if (linkTypeNameFilter) {
       filtered = filtered.filter((job) =>
-        job.linkTypeName.toLowerCase().includes(linkTypeNameFilter.toLowerCase()),
+        job.linkTypeName
+          .toLowerCase()
+          .includes(linkTypeNameFilter.toLowerCase()),
       );
     }
 
     if (minMaxCount) {
-      filtered = filtered.filter((job) => job.maxCount >= parseInt(minMaxCount));
+      filtered = filtered.filter(
+        (job) => job.maxCount >= parseInt(minMaxCount),
+      );
     }
 
     if (uidFilter) {
@@ -128,12 +175,17 @@ const JobsTable = () => {
       );
     }
 
+    const filteredJobIds = new Set(filtered.map((job) => job._id));
+
+    setSelectedJobs((prev) => prev.filter((id) => filteredJobIds.has(id)));
+
     setFilteredJobs(filtered);
   }, [
     Jobs,
     platformFilter,
     statusFilter,
-    publishDate,
+    startDate,
+    endDate,
     minLikes,
     jobIdFilter,
     isLive,
@@ -145,7 +197,8 @@ const JobsTable = () => {
   const clearFilters = () => {
     setPlatformFilter("");
     setStatusFilter("");
-    setPublishDate("");
+    setStartDate("");
+    setEndDate("");
     setMinLikes("");
     setJobIdFilter("");
     setIsLive(false);
@@ -157,7 +210,7 @@ const JobsTable = () => {
   return (
     <>
       <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Platform</label>
             <input
@@ -194,13 +247,23 @@ const JobsTable = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Publish Date</label>
-            <input
-              type="date"
-              value={publishDate}
-              onChange={(e) => setPublishDate(e.target.value)}
-              className="rounded-lg border border-stroke px-3 py-2 text-black"
-            />
+            <label className="text-sm font-medium">Date Range</label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full rounded-lg border border-stroke px-3 py-2 text-black"
+                placeholder="Start Date"
+              />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full rounded-lg border border-stroke px-3 py-2 text-black"
+                placeholder="End Date"
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -257,19 +320,39 @@ const JobsTable = () => {
                   checked={isLive}
                   onChange={(e) => setIsLive(e.target.checked)}
                 />
-                <div className="bg-gray after:border-gray peer h-6 w-11 rounded-full after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                <div className="peer h-6 w-11 rounded-full bg-gray after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
               </label>
             </div>
           </div>
         </div>
 
         <div className="mb-6 flex justify-between">
-          <button
-            onClick={clearFilters}
-            className="bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg px-4 py-2 text-sm font-medium"
-          >
-            Clear Filters
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={clearFilters}
+              className="text-gray-700 hover:bg-gray transition-all duration-300 rounded-lg px-4 py-2 text-sm font-medium"
+            >
+              Clear Filters
+            </button>
+
+            {selectedJobs.length > 0 && (
+              <button
+                onClick={handleUnSelectAll}
+                className="text-gray-700 hover:bg-gray transition-all duration-300 rounded-lg px-4 py-2 text-sm font-medium"
+                >
+                Unselect all
+              </button>
+            )}
+
+            {selectedJobs.length > 0 && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="rounded-lg bg-red px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90"
+              >
+                Delete Selected ({selectedJobs.length})
+              </button>
+            )}
+          </div>
 
           <Link
             href="/jobs/create"
@@ -311,10 +394,16 @@ const JobsTable = () => {
                 </h5>
               </div>
 
-              <div className="block p-2.5 text-center xl:p-5">
+              <div className="flex items-center gap-2 p-2.5 xl:p-5">
                 <h5 className="text-sm font-medium uppercase xsm:text-base">
-                  Actions
+                  select all
                 </h5>
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 rounded border-gray"
+                  checked={filteredJobs?.length === selectedJobs.length}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                />
               </div>
             </div>
 
@@ -329,6 +418,15 @@ const JobsTable = () => {
                   key={key}
                 >
                   <div className="flex items-center gap-3 p-2.5 xl:p-5">
+                    <input
+                      type="checkbox"
+                      className="border-gray-300 h-5 w-5 rounded"
+                      checked={selectedJobs.includes(link._id)}
+                      onChange={(e) =>
+                        handleSelectJob(link._id, e.target.checked)
+                      }
+                    />
+
                     <div className="flex-shrink-0">
                       <Image
                         src={"/images/brand/brand-05.svg"}
@@ -398,7 +496,7 @@ const JobsTable = () => {
                       className="hover:text-red"
                       onClick={() => {
                         setShowModal(true);
-                        setJobId(link._id);
+                        setSelectedJobs([link._id]);
                       }}
                     >
                       <svg
@@ -437,14 +535,20 @@ const JobsTable = () => {
       {ShowModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-700 bg-opacity-50">
           <div className="rounded-lg bg-white p-6 text-center shadow-lg">
-            <p className="mb-4 text-lg font-semibold">Confirm deletion ?</p>
+            <p className="mb-4 text-lg font-semibold">
+              {selectedJobs.length > 1
+                ? `Are you sure you want to delete ${selectedJobs.length} jobs?`
+                : "Are you sure you want to delete this job?"}
+            </p>
             <div className="flex w-full items-center space-x-4">
               <button
                 disabled={loading}
                 className="flex w-full justify-center rounded bg-red p-3 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
-                onClick={() => deleteJob(JobId)}
+                onClick={() =>
+                  deleteJobs(selectedJobs.length > 0 ? selectedJobs : [JobId])
+                }
               >
-                Delete
+                {loading ? "Deleting..." : "Delete"}
               </button>
               <button
                 disabled={loading}
