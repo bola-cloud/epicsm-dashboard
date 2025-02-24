@@ -1,4 +1,3 @@
-// components/JobsTable.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -11,6 +10,8 @@ import DeleteModal from "./DeleteModal";
 import API from "@/utils/API";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
 import JobFilters from "./Filter";
+import Pagination from "./Pagination";
+import SearchBar from "./SearchBar";
 
 const initialFilterState: FilterState = {
   platformFilter: "",
@@ -38,12 +39,21 @@ const JobsTable: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [filters, setFilters] = useState<FilterState>(initialFilterState);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
-  const getJobs = async () => {
+  const getJobs = async (page: number) => {
     try {
-      const res = await API.get("/api/v3/jobs", { headers });
+      const res = await API.get(
+        `/api/v3/jobs?page=${page}&limit=${itemsPerPage}`,
+        { headers },
+      );
       if (res.status === 200) {
-        setJobs(res.data);
+        setJobs(res.data.jobs);
+        setTotalItems(res.data.pagination.total);
       } else {
         console.error("No Jobs found");
         toast.error("No Jobs found");
@@ -52,6 +62,38 @@ const JobsTable: React.FC = () => {
       console.error("Failed to fetch Jobs", error);
       toast.error("Failed to fetch Jobs");
     }
+  };
+
+  const handleSearch = () => {
+    searchJobs();
+  };
+
+  const searchJobs = async () => {
+    try {
+      setIsSearching(true);
+      const res = await API.get(
+        `/api/v3/jobs/search/search?q=${encodeURIComponent(searchQuery)}&page=${currentPage}&limit=${itemsPerPage}`,
+        { headers },
+      );
+      if (res.status === 200) {
+        setJobs(res.data.jobs);
+        setTotalItems(res.data.pagination.total);
+      } else {
+        console.error("Search failed");
+        toast.error("Search failed");
+      }
+    } catch (error) {
+      console.error("Failed to search jobs", error);
+      toast.error("Failed to search jobs");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setIsSearching(false);
+    getJobs(1);
   };
 
   const deleteJobs = async (ids: string[]) => {
@@ -64,7 +106,7 @@ const JobsTable: React.FC = () => {
 
       if (res.status === 200) {
         toast.success(`Successfully deleted ${res.data.deletedCount} jobs`);
-        await getJobs();
+        await getJobs(1);
         setIsDeleteModalOpen(false);
         setSelectedJobs([]);
       } else {
@@ -92,6 +134,11 @@ const JobsTable: React.FC = () => {
     } else {
       setSelectedJobs(selectedJobs.filter((id) => id !== jobId));
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    getJobs(page);
   };
 
   const filterJobs = () => {
@@ -175,8 +222,12 @@ const JobsTable: React.FC = () => {
   };
 
   useEffect(() => {
-    getJobs();
-  }, []);
+    if (!isSearching) {
+      getJobs(currentPage);
+    } else {
+      searchJobs();
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     filterJobs();
@@ -184,6 +235,23 @@ const JobsTable: React.FC = () => {
 
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onSearch={handleSearch}
+          placeholder="Search across all fields..."
+        />
+        {!isSearching && (
+          <button
+            onClick={clearSearch}
+            className="text-gray-500 text-sm hover:text-primary"
+          >
+            Clear search
+          </button>
+        )}
+      </div>
+
       <div className="mb-4">
         <JobFilters
           filters={filters}
@@ -256,6 +324,15 @@ const JobsTable: React.FC = () => {
           ))}
         </div>
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(totalItems / itemsPerPage)}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+        className="mx-4 my-4"
+      />
 
       <DeleteModal
         isOpen={isDeleteModalOpen}
