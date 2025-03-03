@@ -24,6 +24,7 @@ const initialFilterState: FilterState = {
   linkTypeNameFilter: "",
   minMaxCount: "",
   uidFilter: "",
+  isVipFilter: "all",
 };
 
 const headers = {
@@ -193,6 +194,10 @@ const JobsTable: React.FC = () => {
 
     if (filters.liveFilter !== "all") {
       filtered = filtered.filter((job) => job.isLive === filters.liveFilter);
+    }
+
+    if (filters.isVipFilter !== "all") {
+      filtered = filtered.filter((job) => job.isVip === filters.isVipFilter);
     }
 
     if (filters.linkTypeNameFilter) {

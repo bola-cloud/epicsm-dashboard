@@ -20,7 +20,7 @@ const JobFilters: React.FC<FilterProps> = ({
   };
 
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
-    if (key === "liveFilter") return value !== "all";
+    if (key === "liveFilter" || key === "isVipFilter") return value !== "all";
     if (typeof value === "boolean") return value;
     return value !== "";
   }).length;
@@ -128,6 +128,11 @@ const JobFilters: React.FC<FilterProps> = ({
             value={filters.liveFilter}
             onChange={(value) => updateFilter("liveFilter", value)}
           />
+
+          <VipJobsFilter
+            value={filters.isVipFilter}
+            onChange={(value) => updateFilter("isVipFilter", value)}
+          />
         </div>
       </div>
 
@@ -228,6 +233,51 @@ const LiveJobsFilter: React.FC<LiveJobsFilterProps> = ({ value, onChange }) => (
           className="h-4 w-4 rounded-full border-gray text-primary"
         />
         <span className="text-gray-700 text-sm">Not Live</span>
+      </label>
+    </div>
+  </div>
+);
+
+interface VipJobsFilterProps {
+  value: "all" | boolean;
+  onChange: (value: "all" | boolean) => void;
+}
+
+const VipJobsFilter: React.FC<VipJobsFilterProps> = ({ value, onChange }) => (
+  <div className="flex flex-col gap-2">
+    <label className="text-sm font-medium">VIP Status</label>
+    <div className="flex items-center gap-4">
+      <label className="flex items-center gap-2">
+        <input
+          type="radio"
+          name="vipStatus"
+          checked={value === "all"}
+          onChange={() => onChange("all")}
+          className="h-4 w-4 rounded-full border-gray text-primary"
+        />
+        <span className="text-gray-700 text-sm">All</span>
+      </label>
+
+      <label className="flex items-center gap-2">
+        <input
+          type="radio"
+          name="vipStatus"
+          checked={value === true}
+          onChange={() => onChange(true)}
+          className="h-4 w-4 rounded-full border-gray text-primary"
+        />
+        <span className="text-gray-700 text-sm">VIP</span>
+      </label>
+
+      <label className="flex items-center gap-2">
+        <input
+          type="radio"
+          name="vipStatus"
+          checked={value === false}
+          onChange={() => onChange(false)}
+          className="h-4 w-4 rounded-full border-gray text-primary"
+        />
+        <span className="text-gray-700 text-sm">Non-VIP</span>
       </label>
     </div>
   </div>

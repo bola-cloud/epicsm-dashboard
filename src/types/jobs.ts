@@ -15,6 +15,7 @@ export interface Job {
   status: string;
   type?: string | null;
   uid: string;
+  isVip?: boolean;
 }
 
 export interface FilterState {
@@ -28,6 +29,7 @@ export interface FilterState {
   linkTypeNameFilter: string;
   minMaxCount: string;
   uidFilter: string;
+  isVipFilter: "all" | boolean;
 }
 
 export interface FilterProps {

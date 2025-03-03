@@ -1,10 +1,10 @@
 "use client";
 
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import Select from "../common/Select";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import API from "@/utils/API";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -24,12 +24,15 @@ function JobCreate() {
     maxCount: 0,
     finishDate: "",
     country: "all",
+    isVip: false,
   });
 
   const handleChange = (e: any) => {
+    const { name, value, type, checked } = e.target;
+    const inputValue = type === "checkbox" ? checked : value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: inputValue,
     });
   };
 
@@ -51,11 +54,7 @@ function JobCreate() {
     if (isValidLink(link)) {
       try {
         setloading(true);
-        const response = await axios.post(
-          "https://api.epicsm.goviral.ma/api/v3/jobs",
-          formData,
-          { headers },
-        );
+        const response = await API.post("/api/v3/jobs", formData, { headers });
 
         if (response.status === 201) {
           toast.success("Job added");
@@ -68,6 +67,7 @@ function JobCreate() {
             maxCount: 0,
             type: "",
             country: "all",
+            isVip: false,
           });
         }
       } catch (error: any) {
@@ -417,6 +417,29 @@ function JobCreate() {
               min={0}
               onWheel={(e) => e.currentTarget.blur()}
             />
+          </div>
+
+          <div className="mb-4.5 flex items-center">
+            <label className="flex cursor-pointer select-none items-center">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  name="isVip"
+                  checked={formData.isVip}
+                  onChange={handleChange}
+                  className="sr-only"
+                />
+                <div className="block h-8 w-14 rounded-full bg-[#E5E7EB] dark:bg-form-strokedark"></div>
+                <div
+                  className={`absolute left-1 top-1 h-6 w-6 rounded-full bg-white transition ${
+                    formData.isVip && "!right-1 !translate-x-full !bg-primary"
+                  }`}
+                ></div>
+              </div>
+              <span className="ml-3 text-sm font-medium text-black dark:text-white">
+                VIP
+              </span>
+            </label>
           </div>
 
           {/* <div className="mb-4.5">
