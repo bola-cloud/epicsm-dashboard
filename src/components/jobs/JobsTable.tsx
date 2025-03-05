@@ -238,6 +238,9 @@ const JobsTable: React.FC = () => {
     filterJobs();
   }, [jobs, filters]);
 
+  console.log(jobs.map(job => ({ isVip: job.isVip })));
+
+
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -299,9 +302,7 @@ const JobsTable: React.FC = () => {
 
       {filteredJobs && (
         <div className="mb-2 flex w-full items-center justify-center">
-          <h2 className="font-semibold sm:text-lg">
-            {filteredJobs.length} Results
-          </h2>
+          <h2 className="font-semibold sm:text-lg">{totalItems} Results</h2>
         </div>
       )}
 
