@@ -203,7 +203,7 @@ function UserProfile() {
             {User?.name}
             {User?.isVip && (
               <span className="ml-2 inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-                VIP
+                VIP 💎
               </span>
             )}
           </h3>
@@ -275,11 +275,11 @@ function UserProfile() {
                   <div>
                     {User?.isVip ? (
                       <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                        Enabled
+                        VIP
                       </span>
                     ) : (
                       <span className="bg-gray-100 text-gray-800 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
-                        Disabled
+                        Not VIP
                       </span>
                     )}
                   </div>
