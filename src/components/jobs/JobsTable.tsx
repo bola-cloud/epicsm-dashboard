@@ -197,7 +197,9 @@ const JobsTable: React.FC = () => {
     }
 
     if (filters.isVipFilter !== "all") {
-      filtered = filtered.filter((job) => job.isVip === filters.isVipFilter);
+      filtered = filtered.filter(
+        (job) => (job.isVip ?? false) === filters.isVipFilter,
+      );
     }
 
     if (filters.linkTypeNameFilter) {
@@ -237,9 +239,7 @@ const JobsTable: React.FC = () => {
   useEffect(() => {
     filterJobs();
   }, [jobs, filters]);
-
-  console.log(jobs.map(job => ({ isVip: job.isVip })));
-
+  
 
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">

@@ -1,4 +1,4 @@
-// File: C:\Users\Walid\Desktop\epicsm\epicsm-dashboard2\src\app\layout.tsx
+// File: C:\Users\Walid\Desktop\epicsm\epicsm-dashboard\src\app\layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
