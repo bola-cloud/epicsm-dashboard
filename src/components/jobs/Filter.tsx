@@ -8,10 +8,12 @@ const JobFilters: React.FC<FilterProps> = ({
   isExpanded,
   onToggle,
   onClear,
+  onApply,
 }) => {
   const handleClearFilters = () => {
     onClear();
   };
+
   const updateFilter = (
     key: keyof FilterState,
     value: string | boolean | "all",
@@ -134,15 +136,44 @@ const JobFilters: React.FC<FilterProps> = ({
             onChange={(value) => updateFilter("isVipFilter", value)}
           />
         </div>
+
+        {/* New Apply button row */}
+        <div className="mt-4 flex justify-end gap-3">
+          {activeFiltersCount > 0 && (
+            <button
+              onClick={handleClearFilters}
+              className="text-gray-700 rounded-lg border border-stroke px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-gray"
+            >
+              Clear all filters
+            </button>
+          )}
+
+          <button
+            onClick={onApply}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-all duration-300 hover:bg-opacity-90"
+          >
+            Apply Filters
+          </button>
+        </div>
       </div>
 
-      {activeFiltersCount > 0 && (
-        <button
-          onClick={handleClearFilters}
-          className="rounded-full px-2 py-1 transition-all duration-300 hover:bg-gray"
-        >
-          Clear all filters
-        </button>
+      {/* Remove the clear filters button from outside if we have it inside the filter panel */}
+      {isExpanded === false && activeFiltersCount > 0 && (
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handleClearFilters}
+            className="rounded-full px-2 py-1 transition-all duration-300 hover:bg-gray"
+          >
+            Clear all filters
+          </button>
+
+          <button
+            onClick={onApply}
+            className="rounded-lg bg-primary px-3 py-1 text-sm font-medium text-white transition-all duration-300 hover:bg-opacity-90"
+          >
+            Apply Filters
+          </button>
+        </div>
       )}
     </div>
   );

@@ -38,7 +38,7 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
       </p>
     </div>
 
-    <div className="flex items-center justify-center p-2.5 xl:p-5">
+    <div className="flex gap-1 items-center justify-center p-2.5 xl:p-5">
       <p
         className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
           job.status === "Active"
@@ -48,6 +48,11 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
       >
         {job.status}
       </p>
+      {job.isVip && (
+        <span className="inline-flex items-center rounded-full bg-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+          VIP
+        </span>
+      )}
     </div>
 
     <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
@@ -64,10 +69,10 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
 
     <div className="flex items-center justify-center space-x-3.5">
       <Link href={`/jobs/${job._id}`} className="hover:text-primary">
-      <Eye />
+        <Eye />
       </Link>
       <button className="hover:text-red" onClick={() => onDelete(job._id)}>
-      <Trash2 />
+        <Trash2 />
       </button>
     </div>
   </div>
