@@ -34,7 +34,6 @@ const headers = {
 
 const JobsTable: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,9 +44,12 @@ const JobsTable: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
 
   const getJobs = async (page: number) => {
     try {
+      setIsLoading(true);
       const res = await API.get(
         `/api/v3/jobs?page=${page}&limit=${itemsPerPage}`,
         { headers },
@@ -55,6 +57,7 @@ const JobsTable: React.FC = () => {
       if (res.status === 200) {
         setJobs(res.data.jobs);
         setTotalItems(res.data.pagination.total);
+        setTotalPages(res.data.pagination.totalPages);
       } else {
         console.error("No Jobs found");
         toast.error("No Jobs found");
@@ -62,23 +65,112 @@ const JobsTable: React.FC = () => {
     } catch (error) {
       console.error("Failed to fetch Jobs", error);
       toast.error("Failed to fetch Jobs");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkIfFiltersApplied = (): boolean => {
+    return Object.entries(filters).some(([key, value]) => {
+      const typedKey = key as keyof FilterState;
+
+      if (typedKey === "liveFilter" && value === "all") return false;
+      if (typedKey === "isVipFilter" && value === "all") return false;
+
+      return (
+        value !== initialFilterState[typedKey] &&
+        value !== "" &&
+        value !== "all"
+      );
+    });
+  };
+
+  const fetchFilteredJobs = async (page: number) => {
+    setIsFiltering(true);
+    setIsLoading(true);
+
+    try {
+      const queryParams = new URLSearchParams();
+
+      queryParams.append("page", page.toString());
+      queryParams.append("limit", itemsPerPage.toString());
+
+      if (filters.platformFilter)
+        queryParams.append("platformFilter", filters.platformFilter);
+      if (filters.statusFilter)
+        queryParams.append("statusFilter", filters.statusFilter);
+      if (filters.startDate) queryParams.append("startDate", filters.startDate);
+      if (filters.endDate) queryParams.append("endDate", filters.endDate);
+      if (filters.minLikes) queryParams.append("minLikes", filters.minLikes);
+      if (filters.jobIdFilter)
+        queryParams.append("jobIdFilter", filters.jobIdFilter);
+      if (filters.linkTypeNameFilter)
+        queryParams.append("linkTypeNameFilter", filters.linkTypeNameFilter);
+      if (filters.minMaxCount)
+        queryParams.append("minMaxCount", filters.minMaxCount);
+      if (filters.uidFilter) queryParams.append("uidFilter", filters.uidFilter);
+
+      if (filters.liveFilter !== "all")
+        queryParams.append("liveFilter", String(filters.liveFilter));
+      if (filters.isVipFilter !== "all")
+        queryParams.append("isVipFilter", String(filters.isVipFilter));
+
+      const res = await API.get(
+        `/api/v3/jobs/filter/filter?${queryParams.toString()}`,
+        { headers },
+      );
+
+      if (res.status === 200) {
+        if (Array.isArray(res.data)) {
+          setJobs(res.data);
+          setTotalItems(res.data.length);
+          setTotalPages(Math.ceil(res.data.length / itemsPerPage) || 1);
+        } else if (res.data.jobs) {
+          setJobs(res.data.jobs);
+          setTotalItems(res.data.pagination?.total || 0);
+          setTotalPages(res.data.pagination?.totalPages || 1);
+        } else {
+          setJobs([]);
+          setTotalItems(0);
+          setTotalPages(1);
+          toast.error("No jobs found matching your filters");
+        }
+      } else {
+        console.error("Failed to get filtered jobs");
+        toast.error("Failed to filter jobs");
+      }
+    } catch (error) {
+      console.error("Error fetching filtered jobs", error);
+      toast.error("Failed to filter jobs");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSearch = () => {
-    searchJobs();
+    if (searchQuery.trim() === "") {
+      setIsSearching(false);
+      setCurrentPage(1);
+      getJobs(1);
+    } else {
+      setIsSearching(true);
+      setCurrentPage(1);
+      searchJobs(1);
+    }
   };
 
-  const searchJobs = async () => {
+  const searchJobs = async (page: number) => {
     try {
-      setIsSearching(true);
+      setIsLoading(true);
       const res = await API.get(
-        `/api/v3/jobs/search/search?q=${encodeURIComponent(searchQuery)}&page=${currentPage}&limit=${itemsPerPage}`,
+        `/api/v3/jobs/search/search?q=${encodeURIComponent(searchQuery)}&page=${page}&limit=${itemsPerPage}`,
         { headers },
       );
+
       if (res.status === 200) {
         setJobs(res.data.jobs);
         setTotalItems(res.data.pagination.total);
+        setTotalPages(res.data.pagination.totalPages);
       } else {
         console.error("Search failed");
         toast.error("Search failed");
@@ -87,14 +179,26 @@ const JobsTable: React.FC = () => {
       console.error("Failed to search jobs", error);
       toast.error("Failed to search jobs");
     } finally {
-      setIsSearching(false);
+      setIsLoading(false);
     }
   };
 
   const clearSearch = () => {
     setSearchQuery("");
     setIsSearching(false);
+    setCurrentPage(1);
     getJobs(1);
+  };
+
+  const applyFilters = () => {
+    if (checkIfFiltersApplied()) {
+      setCurrentPage(1);
+      fetchFilteredJobs(1);
+    } else {
+      setIsFiltering(false);
+      setCurrentPage(1);
+      getJobs(1);
+    }
   };
 
   const deleteJobs = async (ids: string[]) => {
@@ -107,7 +211,15 @@ const JobsTable: React.FC = () => {
 
       if (res.status === 200) {
         toast.success(`Successfully deleted ${res.data.deletedCount} jobs`);
-        await getJobs(1);
+
+        if (isSearching) {
+          searchJobs(1);
+        } else if (isFiltering) {
+          fetchFilteredJobs(1);
+        } else {
+          getJobs(1);
+        }
+
         setIsDeleteModalOpen(false);
         setSelectedJobs([]);
       } else {
@@ -122,8 +234,8 @@ const JobsTable: React.FC = () => {
   };
 
   const handleSelectAll = (checked: boolean) => {
-    if (checked && filteredJobs) {
-      setSelectedJobs(filteredJobs.map((job) => job._id));
+    if (checked && jobs) {
+      setSelectedJobs(jobs.map((job) => job._id));
     } else {
       setSelectedJobs([]);
     }
@@ -139,107 +251,33 @@ const JobsTable: React.FC = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    getJobs(page);
-  };
 
-  const filterJobs = () => {
-    if (!jobs) return;
-
-    let filtered = [...jobs];
-
-    if (filters.platformFilter) {
-      filtered = filtered.filter((job) =>
-        job.platform
-          .toLowerCase()
-          .includes(filters.platformFilter.toLowerCase()),
-      );
-    }
-
-    if (filters.statusFilter) {
-      filtered = filtered.filter((job) => job.status === filters.statusFilter);
-    }
-
-    if (filters.jobIdFilter) {
-      filtered = filtered.filter((job) =>
-        job.jobId.toLowerCase().includes(filters.jobIdFilter.toLowerCase()),
-      );
-    }
-
-    if (filters.startDate || filters.endDate) {
-      filtered = filtered.filter((job) => {
-        const jobDate = new Date(job.datePublished);
-        const start = filters.startDate ? new Date(filters.startDate) : null;
-        const end = filters.endDate ? new Date(filters.endDate) : null;
-
-        if (start) start.setHours(0, 0, 0, 0);
-        if (end) end.setHours(23, 59, 59, 999);
-        jobDate.setHours(0, 0, 0, 0);
-
-        if (start && end) {
-          return jobDate >= start && jobDate <= end;
-        } else if (start) {
-          return jobDate >= start;
-        } else if (end) {
-          return jobDate <= end;
-        }
-        return true;
-      });
-    }
-
-    if (filters.minLikes) {
-      filtered = filtered.filter(
-        (job) => job.likeCount >= parseInt(filters.minLikes),
-      );
-    }
-
-    if (filters.liveFilter !== "all") {
-      filtered = filtered.filter((job) => job.isLive === filters.liveFilter);
-    }
-
-    if (filters.isVipFilter !== "all") {
-      filtered = filtered.filter(
-        (job) => (job.isVip ?? false) === filters.isVipFilter,
-      );
-    }
-
-    if (filters.linkTypeNameFilter) {
-      filtered = filtered.filter((job) =>
-        job.linkTypeName
-          .toLowerCase()
-          .includes(filters.linkTypeNameFilter.toLowerCase()),
-      );
-    }
-
-    if (filters.minMaxCount) {
-      filtered = filtered.filter(
-        (job) => job.maxCount >= parseInt(filters.minMaxCount),
-      );
-    }
-
-    if (filters.uidFilter) {
-      filtered = filtered.filter((job) =>
-        job.uid.toLowerCase().includes(filters.uidFilter.toLowerCase()),
-      );
-    }
-
-    const filteredJobIds = new Set(filtered.map((job) => job._id));
-    setSelectedJobs((prev) => prev.filter((id) => filteredJobIds.has(id)));
-
-    setFilteredJobs(filtered);
-  };
-
-  useEffect(() => {
-    if (!isSearching) {
-      getJobs(currentPage);
+    if (isSearching) {
+      searchJobs(page);
+    } else if (isFiltering) {
+      fetchFilteredJobs(page);
     } else {
-      searchJobs();
+      getJobs(page);
     }
-  }, [currentPage]);
+  };
 
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    // Note: We don't apply filters immediately anymore,
+    // user needs to click "Apply Filters" button
+  };
+
+  const handleClearFilters = () => {
+    setFilters(initialFilterState);
+    setIsFiltering(false);
+    setCurrentPage(1);
+    getJobs(1);
+  };
+
+  // Initial data load
   useEffect(() => {
-    filterJobs();
-  }, [jobs, filters]);
-  
+    getJobs(1);
+  }, []);
 
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
@@ -250,7 +288,7 @@ const JobsTable: React.FC = () => {
           onSearch={handleSearch}
           placeholder="Search across all fields..."
         />
-        {!isSearching && (
+        {searchQuery && (
           <button
             onClick={clearSearch}
             className="text-gray-500 text-sm hover:text-primary"
@@ -263,12 +301,11 @@ const JobsTable: React.FC = () => {
       <div className="mb-4">
         <JobFilters
           filters={filters}
-          setFilters={setFilters}
+          setFilters={handleFilterChange}
           isExpanded={isFiltersExpanded}
           onToggle={() => setIsFiltersExpanded(!isFiltersExpanded)}
-          onClear={() => {
-            setFilters(initialFilterState);
-          }}
+          onClear={handleClearFilters}
+          onApply={applyFilters} // New prop for applying filters
         />
       </div>
 
@@ -300,9 +337,13 @@ const JobsTable: React.FC = () => {
         </Link>
       </div>
 
-      {filteredJobs && (
+      {jobs && (
         <div className="mb-2 flex w-full items-center justify-center">
-          <h2 className="font-semibold sm:text-lg">{totalItems} Results</h2>
+          <h2 className="font-semibold sm:text-lg">
+            {isLoading
+              ? "Loading..."
+              : `${totalItems} ${isSearching ? "Search Results" : "Results"}`}
+          </h2>
         </div>
       )}
 
@@ -311,29 +352,38 @@ const JobsTable: React.FC = () => {
           <JobTableHeader
             onSelectAll={handleSelectAll}
             isAllSelected={
-              filteredJobs?.length > 0 &&
-              filteredJobs?.length === selectedJobs.length
+              jobs?.length > 0 && jobs?.length === selectedJobs.length
             }
           />
 
-          {filteredJobs?.map((job) => (
-            <JobTableRow
-              key={job._id}
-              job={job}
-              isSelected={selectedJobs.includes(job._id)}
-              onSelect={handleSelectJob}
-              onDelete={() => {
-                setSelectedJobs([job._id]);
-                setIsDeleteModalOpen(true);
-              }}
-            />
-          ))}
+          {isLoading ? (
+            <div className="text-gray-500 py-4 text-center">
+              Loading jobs...
+            </div>
+          ) : jobs?.length > 0 ? (
+            jobs.map((job) => (
+              <JobTableRow
+                key={job._id}
+                job={job}
+                isSelected={selectedJobs.includes(job._id)}
+                onSelect={handleSelectJob}
+                onDelete={() => {
+                  setSelectedJobs([job._id]);
+                  setIsDeleteModalOpen(true);
+                }}
+              />
+            ))
+          ) : (
+            <div className="text-gray-500 py-4 text-center">
+              No jobs found matching your criteria.
+            </div>
+          )}
         </div>
       </div>
 
       <Pagination
         currentPage={currentPage}
-        totalPages={Math.ceil(totalItems / itemsPerPage)}
+        totalPages={totalPages}
         totalItems={totalItems}
         itemsPerPage={itemsPerPage}
         onPageChange={handlePageChange}

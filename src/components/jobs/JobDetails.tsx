@@ -48,11 +48,15 @@ function JobDetails() {
 
   async function UpdateJob() {
     try {
-      const res = await API.put(`/api/v3/jobs/${id}`, {
-        isLive: !enabled,
-      }, {
-        headers,
-      });
+      const res = await API.put(
+        `/api/v3/jobs/${id}`,
+        {
+          isLive: !enabled,
+        },
+        {
+          headers,
+        },
+      );
 
       if (res.status === 201) {
         setEnabled(!enabled);
@@ -87,6 +91,7 @@ function JobDetails() {
               }}
             />
           </div>
+
           <div className="px-4 pb-6 text-center lg:pb-8 xl:pb-11.5">
             <div className="relative z-30 mx-auto -mt-22 h-30 w-full max-w-30 rounded-full bg-white/20 p-1 backdrop-blur sm:h-44 sm:max-w-44 sm:p-3">
               <div className="relative drop-shadow-2">
@@ -97,8 +102,14 @@ function JobDetails() {
                   alt="profile"
                 />
               </div>
+
+              {Job?.isVip && (
+                <span className="mt-2 inline-block items-center rounded-full bg-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+                  VIP
+                </span>
+              )}
             </div>
-            <div className="mt-4">
+            <div className="mt-5">
               <h3 className="mb-1.5 text-2xl font-semibold text-black dark:text-white">
                 {Job?._id}
               </h3>
@@ -119,7 +130,8 @@ function JobDetails() {
 
                 {Job?.linkTypeName && (
                   <li>
-                    <span>Objective: </span>{Job?.linkTypeName}
+                    <span>Objective: </span>
+                    {Job?.linkTypeName}
                   </li>
                 )}
 

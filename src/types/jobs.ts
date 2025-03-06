@@ -25,11 +25,12 @@ export interface FilterState {
   endDate: string;
   minLikes: string;
   jobIdFilter: string;
-  liveFilter: "all" | true | false;
+  liveFilter: "all" | boolean;
   linkTypeNameFilter: string;
   minMaxCount: string;
   uidFilter: string;
   isVipFilter: "all" | boolean;
+  [key: string]: string | boolean | "all";
 }
 
 export interface FilterProps {
@@ -38,6 +39,7 @@ export interface FilterProps {
   isExpanded: boolean;
   onToggle: () => void;
   onClear: () => void;
+  onApply: () => void;
 }
 
 export interface JobTableHeaderProps {
