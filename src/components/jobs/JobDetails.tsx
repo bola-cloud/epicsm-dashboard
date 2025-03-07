@@ -113,6 +113,7 @@ function JobDetails() {
               <h3 className="mb-1.5 text-2xl font-semibold text-black dark:text-white">
                 {Job?._id}
               </h3>
+              <p className="font-medium">User id: {Job?.uid}</p>
               <p className="font-medium">Platform: {Job?.platform}</p>
               <p className="font-medium">Country: {Job?.country}</p>
 

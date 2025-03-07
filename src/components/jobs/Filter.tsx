@@ -105,10 +105,10 @@ const JobFilters: React.FC<FilterProps> = ({
           />
 
           <FilterInput
-            label="Link Type"
+            label="Objectif"
             value={filters.linkTypeNameFilter}
             onChange={(value) => updateFilter("linkTypeNameFilter", value)}
-            placeholder="Filter by link type"
+            placeholder="Filter by objectif"
           />
 
           <FilterInput

@@ -10,7 +10,7 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
   onSelect,
   onDelete,
 }) => (
-  <div className="grid grid-cols-3 border-b border-stroke hover:bg-slate-100/50 dark:border-strokedark sm:grid-cols-7">
+  <div className="grid grid-cols-3 border-b border-stroke hover:bg-slate-100/50 dark:border-strokedark sm:grid-cols-8">
     <div className="flex items-center gap-3 p-2.5 xl:p-5">
       <input
         type="checkbox"
@@ -38,7 +38,7 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
       </p>
     </div>
 
-    <div className="flex gap-1 items-center justify-center p-2.5 xl:p-5">
+    <div className="flex items-center justify-center gap-1 p-2.5 xl:p-5">
       <p
         className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
           job.status === "Active"
@@ -57,6 +57,10 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
 
     <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
       <p className="truncate text-black dark:text-white">{job.jobId}</p>
+    </div>
+
+    <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
+      <p className="truncate text-black dark:text-white">{job.linkTypeName}</p>
     </div>
 
     <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
