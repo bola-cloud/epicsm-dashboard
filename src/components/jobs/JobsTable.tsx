@@ -46,6 +46,7 @@ const JobsTable: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
+  const [isSelectAllPages, setIsSelectAllPages] = useState(false);
 
   const getJobs = async (page: number) => {
     try {
@@ -212,6 +213,9 @@ const JobsTable: React.FC = () => {
       if (res.status === 200) {
         toast.success(`Successfully deleted ${res.data.deletedCount} jobs`);
 
+        // Reset select all state
+        setIsSelectAllPages(false);
+
         if (isSearching) {
           searchJobs(1);
         } else if (isFiltering) {
@@ -233,15 +237,12 @@ const JobsTable: React.FC = () => {
     }
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked && jobs) {
-      setSelectedJobs(jobs.map((job) => job._id));
-    } else {
-      setSelectedJobs([]);
-    }
-  };
-
   const handleSelectJob = (jobId: string, checked: boolean) => {
+    // When manually selecting/deselecting a job, we're no longer in "select all pages" mode
+    if (isSelectAllPages) {
+      setIsSelectAllPages(false);
+    }
+
     if (checked) {
       setSelectedJobs([...selectedJobs, jobId]);
     } else {
@@ -272,6 +273,82 @@ const JobsTable: React.FC = () => {
     setIsFiltering(false);
     setCurrentPage(1);
     getJobs(1);
+  };
+
+  const getAllJobIds = async (): Promise<string[]> => {
+    try {
+      setIsLoading(true);
+
+      let endpoint = "/api/v3/jobs/all-ids/all-ids";
+
+      if (isSearching && searchQuery.trim() !== "") {
+        endpoint = `/api/v3/jobs/search/all-ids/all-ids?q=${encodeURIComponent(searchQuery)}`;
+      } else if (isFiltering && checkIfFiltersApplied()) {
+        const queryParams = new URLSearchParams();
+
+        if (filters.platformFilter)
+          queryParams.append("platformFilter", filters.platformFilter);
+        if (filters.statusFilter)
+          queryParams.append("statusFilter", filters.statusFilter);
+        if (filters.startDate)
+          queryParams.append("startDate", filters.startDate);
+        if (filters.endDate) queryParams.append("endDate", filters.endDate);
+        if (filters.minLikes) queryParams.append("minLikes", filters.minLikes);
+        if (filters.jobIdFilter)
+          queryParams.append("jobIdFilter", filters.jobIdFilter);
+        if (filters.linkTypeNameFilter)
+          queryParams.append("linkTypeNameFilter", filters.linkTypeNameFilter);
+        if (filters.minMaxCount)
+          queryParams.append("minMaxCount", filters.minMaxCount);
+        if (filters.uidFilter)
+          queryParams.append("uidFilter", filters.uidFilter);
+        if (filters.liveFilter !== "all")
+          queryParams.append("liveFilter", String(filters.liveFilter));
+        if (filters.isVipFilter !== "all")
+          queryParams.append("isVipFilter", String(filters.isVipFilter));
+
+        endpoint = `/api/v3/jobs/filtered/all-ids/all-ids?${queryParams.toString()}`;
+      }
+
+      const res = await API.get(endpoint, { headers });
+
+      if (res.status === 200) {
+        return res.data.jobIds || [];
+      } else {
+        console.error("Failed to fetch all job IDs");
+        toast.error("Failed to fetch all job IDs");
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching all job IDs", error);
+      toast.error("Failed to fetch all job IDs");
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectAll = async (checked: boolean) => {
+    if (checked) {
+      // Show toast to indicate loading
+      const loadingToast = toast.loading("Selecting all jobs...");
+
+      // Get all job IDs
+      const allJobIds = await getAllJobIds();
+
+      // Update state
+      setIsSelectAllPages(true);
+      setSelectedJobs(allJobIds);
+
+      // Dismiss loading toast and show success toast
+      toast.dismiss(loadingToast);
+      toast.success(`Selected all ${allJobIds.length} jobs across all pages`);
+    } else {
+      // Clear selection
+      setIsSelectAllPages(false);
+      setSelectedJobs([]);
+      toast.success("Cleared job selection");
+    }
   };
 
   // Initial data load
@@ -314,7 +391,10 @@ const JobsTable: React.FC = () => {
           {selectedJobs.length > 0 && (
             <>
               <button
-                onClick={() => setSelectedJobs([])}
+                onClick={() => {
+                  setSelectedJobs([]);
+                  setIsSelectAllPages(false);
+                }}
                 className="text-gray-700 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-gray"
               >
                 Unselect all
@@ -343,6 +423,9 @@ const JobsTable: React.FC = () => {
             {isLoading
               ? "Loading..."
               : `${totalItems} ${isSearching ? "Search Results" : "Results"}`}
+            {isSelectAllPages &&
+              selectedJobs.length > 0 &&
+              ` (${selectedJobs.length} selected across all pages)`}
           </h2>
         </div>
       )}
@@ -352,7 +435,8 @@ const JobsTable: React.FC = () => {
           <JobTableHeader
             onSelectAll={handleSelectAll}
             isAllSelected={
-              jobs?.length > 0 && jobs?.length === selectedJobs.length
+              isSelectAllPages ||
+              (jobs?.length > 0 && jobs?.length === selectedJobs.length)
             }
           />
 

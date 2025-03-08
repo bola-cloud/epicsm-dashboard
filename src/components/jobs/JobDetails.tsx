@@ -10,6 +10,7 @@ import Breadcrumb from "../Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
 import API from "@/utils/API";
+import { User } from "@/types/user";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -20,6 +21,7 @@ function JobDetails() {
   const { id } = useParams();
   const [Job, setJob] = useState<Job | undefined>();
   const [enabled, setEnabled] = useState(false);
+  const [User, setUser] = useState<User | undefined>();
 
   async function getJob() {
     try {
@@ -38,12 +40,32 @@ function JobDetails() {
     }
   }
 
+  async function getUser() {
+    try {
+      const res = await API.get(`/api/v3/users/firestore/${Job?.uid}`, {
+        headers,
+      });
+
+      if (res.status === 200) {
+        setUser(res.data);
+      } else {
+        console.error("No user found");
+        toast.error("No user found");
+      }
+    } catch (error) {
+      console.error("Failed to fetch user", error);
+      toast.error("Failed to fetch user");
+    }
+  }
+
   useEffect(() => {
     getJob();
   }, [id]);
 
   useEffect(() => {
     Job?.isLive ? setEnabled(true) : setEnabled(false);
+
+    getUser();
   }, [Job]);
 
   async function UpdateJob() {
@@ -71,6 +93,8 @@ function JobDetails() {
       toast.error("Error updating job");
     }
   }
+
+  console.log(User);
 
   return (
     <section className="w-full">
