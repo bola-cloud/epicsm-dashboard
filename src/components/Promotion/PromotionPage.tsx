@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Clock, Info, Globe } from "lucide-react";
+import { Clock, Info, Globe, BadgePercent } from "lucide-react";
 import { fetchTimezones } from "@/utils/timezoneService";
 import API from "@/utils/API";
 import toast from "react-hot-toast";
@@ -21,7 +21,7 @@ interface Promotion {
   end: string;
   timezone: string;
   active: boolean;
-  __v?: number;
+  promotion_settings?: string;
 }
 
 export function PromotionPage() {
@@ -31,6 +31,7 @@ export function PromotionPage() {
   const [endTime, setEndTime] = useState<string>("19:00");
   const [timezone, setTimezone] = useState<string>("America/New_York");
   const [timezones, setTimezones] = useState<TimezoneOption[]>([]);
+  const [DailyReward, setDailyReward] = useState<string>();
   const [groupedTimezones, setGroupedTimezones] = useState<GroupedTimezones>(
     {},
   );
@@ -160,6 +161,7 @@ export function PromotionPage() {
           setStartTime(promotion.start);
           setEndTime(promotion.end);
           setTimezone(promotion.timezone);
+          setDailyReward(promotion.promotion_settings);
 
           setIsDataFetched(true);
         } else {
@@ -443,6 +445,17 @@ export function PromotionPage() {
                   <span className="font-medium">{currentTime}</span>
                 </p>
               </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <h3 className="text-gray-700 flex items-center gap-2 font-semibold">
+                <BadgePercent className="h-5 w-5 text-blue-500" />
+                Daily Reward :
+              </h3>
+
+              <p className="text-gray-500 text-sm">
+                <span className="font-medium">{DailyReward}</span>
+              </p>
             </div>
           </div>
 

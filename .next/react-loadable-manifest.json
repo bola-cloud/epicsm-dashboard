@@ -18,7 +18,7 @@
     "files": [
       "static/chunks/3975359d-4794093f28cc6e41.js",
       "static/chunks/8472-1a94a30dd5380312.js",
-      "static/chunks/9327.f31baaf350c2231d.js"
+      "static/chunks/9327.358a001a115ecbea.js"
     ]
   },
   "components\\Dashboard\\E-commerce.tsx -> @/components/Charts/ChartThree": {
@@ -31,7 +31,7 @@
   "components\\Dashboard\\E-commerce.tsx -> @/components/Maps/MapOne": {
     "id": 3854,
     "files": [
-      "static/chunks/1605-5fecb7efe1fd1265.js",
+      "static/chunks/1605-1a0a3fbf38f401c3.js",
       "static/chunks/3854.607ce7ced6ee70e2.js"
     ]
   }
