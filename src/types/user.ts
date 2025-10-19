@@ -19,5 +19,6 @@ export type User = {
   dollars: number;
   isConfirmed: boolean;
   banned?: boolean;
+  isVip?: boolean;
   nextRewardDate?: Date;
 };

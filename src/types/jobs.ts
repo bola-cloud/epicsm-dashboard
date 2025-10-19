@@ -15,4 +15,49 @@ export interface Job {
   status: string;
   type?: string | null;
   uid: string;
+  isVip?: boolean;
+}
+
+export interface FilterState {
+  platformFilter: string;
+  statusFilter: string;
+  startDate: string;
+  endDate: string;
+  minLikes: string;
+  jobIdFilter: string;
+  liveFilter: "all" | boolean;
+  linkTypeNameFilter: string;
+  minMaxCount: string;
+  uidFilter: string;
+  isVipFilter: "all" | boolean;
+  [key: string]: string | boolean | "all";
+}
+
+export interface FilterProps {
+  filters: FilterState;
+  setFilters: (filters: FilterState) => void;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onClear: () => void;
+  onApply: () => void;
+}
+
+export interface JobTableHeaderProps {
+  onSelectAll: (checked: boolean) => void;
+  isAllSelected: boolean;
+}
+
+export interface JobTableRowProps {
+  job: Job;
+  isSelected: boolean;
+  onSelect: (id: string, checked: boolean) => void;
+  onDelete: (id: string) => void;
+}
+
+export interface DeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onDelete: () => void;
+  selectedCount: number;
+  isLoading: boolean;
 }

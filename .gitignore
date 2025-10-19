@@ -9,6 +9,7 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.next
 
 # testing
 /coverage
@@ -17,6 +18,7 @@
 /.next/
 /.next
 /out/
+.next
 
 # production
 /build

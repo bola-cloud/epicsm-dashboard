@@ -3,7 +3,6 @@
 import React from "react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import { User } from "../../types/user";
 import { useParams } from "next/navigation";
@@ -19,16 +18,15 @@ function UserProfile() {
   const { id } = useParams();
   const [User, setUser] = useState<User | undefined>();
   const [ShowModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState<"dailyReward">("dailyReward");
   const [dailyRewards, setdailyRewards] = useState<number | null>(null);
   const [loading, setloading] = useState(false);
   const [refrech, setrefrech] = useState(false);
+  const [isVipToggling, setIsVipToggling] = useState(false);
 
   async function getUser() {
     try {
-      const res = await API.get(
-        `/api/v3/users/firestore/${id}`,
-        { headers },
-      );
+      const res = await API.get(`/api/v3/users/firestore/${id}`, { headers });
 
       if (res.status === 200) {
         setUser(res.data);
@@ -86,8 +84,98 @@ function UserProfile() {
     }
   }
 
+  async function toggleVipStatus(newStatus: boolean) {
+    if (isVipToggling) return;
+    
+    try {
+      setIsVipToggling(true);
+      
+      const res = await API.put(
+        `/api/v3/users/firestore/updateVipStatus/${User?.id}`,
+        { isVip: newStatus },
+        { headers },
+      );
+
+      if (res.status === 200) {
+        toast.success(`VIP status ${newStatus ? "enabled" : "disabled"}`);
+        setrefrech(!refrech);
+      }
+    } catch (error) {
+      console.error("Failed to update VIP status", error);
+      toast.error("Failed to update VIP status");
+    } finally {
+      setIsVipToggling(false);
+    }
+  }
+
+  const openModal = (type: "dailyReward") => {
+    setModalType(type);
+    setShowModal(true);
+  };
+
+  const handleVipToggleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStatus = e.target.checked;
+    toggleVipStatus(newStatus);
+  };
+
   return (
     <div className="overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <style jsx>{`
+        .toggle-switch {
+          position: relative;
+          display: inline-block;
+          width: 60px;
+          height: 34px;
+        }
+
+        .toggle-switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          transition: .4s;
+          border-radius: 34px;
+        }
+
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          transition: .4s;
+          border-radius: 50%;
+        }
+
+        input:checked + .slider {
+          background-color: #3C50E0;
+        }
+
+        input:focus + .slider {
+          box-shadow: 0 0 1px #3C50E0;
+        }
+
+        input:checked + .slider:before {
+          transform: translateX(26px);
+        }
+
+        input:disabled + .slider {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      `}</style>
+      
       <div className="relative z-20 h-35 md:h-65">
         <Image
           src={User?.photo || ""}
@@ -113,6 +201,11 @@ function UserProfile() {
         <div className="mt-4">
           <h3 className="mb-1.5 text-2xl font-semibold text-black dark:text-white">
             {User?.name}
+            {User?.isVip && (
+              <span className="ml-2 inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                VIP 💎
+              </span>
+            )}
           </h3>
 
           <table className="mt-5 w-full table-auto">
@@ -168,10 +261,39 @@ function UserProfile() {
                 <td className="px-4 py-4">
                   <button
                     className="rounded bg-primary px-3 py-1 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
-                    onClick={() => setShowModal(true)}
+                    onClick={() => openModal("dailyReward")}
                   >
                     Update daily reward
                   </button>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-4 font-medium text-black dark:text-white">
+                  VIP Status
+                </td>
+                <td className="px-4 py-4 text-black dark:text-white text-center">
+                  <div>
+                    {User?.isVip ? (
+                      <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                        VIP
+                      </span>
+                    ) : (
+                      <span className="bg-gray-100 text-gray-800 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
+                        Not VIP
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-4 flex items-center justify-center">
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={User?.isVip || false}
+                      onChange={handleVipToggleChange}
+                      disabled={isVipToggling}
+                    />
+                    <span className="slider"></span>
+                  </label>
                 </td>
               </tr>
               <tr>

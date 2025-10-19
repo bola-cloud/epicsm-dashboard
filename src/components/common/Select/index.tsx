@@ -6,7 +6,7 @@ interface Props {
   data: string[];
   required?: boolean;
   selectedOption: string;
-  setSelectedOption: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedOption: (value: string) => void;
   isOptionSelected: boolean;
   setIsOptionSelected: React.Dispatch<React.SetStateAction<boolean>>;
 }

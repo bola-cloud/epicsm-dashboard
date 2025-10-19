@@ -1,33 +1,64 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { Job } from "../../types/jobs";
-import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import { Job, FilterState } from "@/types/jobs";
+import { JobTableHeader } from "./JobTableHeader";
+import { JobTableRow } from "./JobTableRow";
+import DeleteModal from "./DeleteModal";
 import API from "@/utils/API";
+import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import JobFilters from "./Filter";
+import Pagination from "./Pagination";
+import SearchBar from "./SearchBar";
+
+const initialFilterState: FilterState = {
+  platformFilter: "",
+  statusFilter: "",
+  startDate: "",
+  endDate: "",
+  minLikes: "",
+  jobIdFilter: "",
+  liveFilter: "all",
+  linkTypeNameFilter: "",
+  minMaxCount: "",
+  uidFilter: "",
+  isVipFilter: "all",
+};
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
   "Content-Type": "application/json",
 };
 
-const JobsTable = () => {
-  const [Jobs, setJobs] = useState<Job[] | undefined>();
-  const [ShowModal, setShowModal] = useState(false);
-  const [JobId, setJobId] = useState("");
-  const [loading, setloading] = useState(false);
-  const [refrech, setrefrech] = useState(false);
+const JobsTable: React.FC = () => {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
+  const [filters, setFilters] = useState<FilterState>(initialFilterState);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isSelectAllPages, setIsSelectAllPages] = useState(false);
 
-  async function getJobs() {
+  const getJobs = async (page: number) => {
     try {
-      const res = await API.get("/api/v3/jobs", {
-        headers,
-      });
-
+      setIsLoading(true);
+      const res = await API.get(
+        `/api/v3/jobs?page=${page}&limit=${itemsPerPage}`,
+        { headers },
+      );
       if (res.status === 200) {
-        setJobs(res.data);
+        setJobs(res.data.jobs);
+        setTotalItems(res.data.pagination.total);
+        setTotalPages(res.data.pagination.totalPages);
       } else {
         console.error("No Jobs found");
         toast.error("No Jobs found");
@@ -35,223 +66,422 @@ const JobsTable = () => {
     } catch (error) {
       console.error("Failed to fetch Jobs", error);
       toast.error("Failed to fetch Jobs");
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-  async function deleteJob(id: string) {
+  const checkIfFiltersApplied = (): boolean => {
+    return Object.entries(filters).some(([key, value]) => {
+      const typedKey = key as keyof FilterState;
+
+      if (typedKey === "liveFilter" && value === "all") return false;
+      if (typedKey === "isVipFilter" && value === "all") return false;
+
+      return (
+        value !== initialFilterState[typedKey] &&
+        value !== "" &&
+        value !== "all"
+      );
+    });
+  };
+
+  const fetchFilteredJobs = async (page: number) => {
+    setIsFiltering(true);
+    setIsLoading(true);
+
     try {
-      setloading(true);
-      const res = await API.delete(`/api/v3/jobs/${id}`, {
-        headers,
-      });
+      const queryParams = new URLSearchParams();
+
+      queryParams.append("page", page.toString());
+      queryParams.append("limit", itemsPerPage.toString());
+
+      if (filters.platformFilter)
+        queryParams.append("platformFilter", filters.platformFilter);
+      if (filters.statusFilter)
+        queryParams.append("statusFilter", filters.statusFilter);
+      if (filters.startDate) queryParams.append("startDate", filters.startDate);
+      if (filters.endDate) queryParams.append("endDate", filters.endDate);
+      if (filters.minLikes) queryParams.append("minLikes", filters.minLikes);
+      if (filters.jobIdFilter)
+        queryParams.append("jobIdFilter", filters.jobIdFilter);
+      if (filters.linkTypeNameFilter)
+        queryParams.append("linkTypeNameFilter", filters.linkTypeNameFilter);
+      if (filters.minMaxCount)
+        queryParams.append("minMaxCount", filters.minMaxCount);
+      if (filters.uidFilter) queryParams.append("uidFilter", filters.uidFilter);
+
+      if (filters.liveFilter !== "all")
+        queryParams.append("liveFilter", String(filters.liveFilter));
+      if (filters.isVipFilter !== "all")
+        queryParams.append("isVipFilter", String(filters.isVipFilter));
+
+      const res = await API.get(
+        `/api/v3/jobs/filter/filter?${queryParams.toString()}`,
+        { headers },
+      );
+
       if (res.status === 200) {
-        toast.success("Job has been deleted.");
-        setrefrech(!refrech);
-        setShowModal(false);
+        if (Array.isArray(res.data)) {
+          setJobs(res.data);
+          setTotalItems(res.data.length);
+          setTotalPages(Math.ceil(res.data.length / itemsPerPage) || 1);
+        } else if (res.data.jobs) {
+          setJobs(res.data.jobs);
+          setTotalItems(res.data.pagination?.total || 0);
+          setTotalPages(res.data.pagination?.totalPages || 1);
+        } else {
+          setJobs([]);
+          setTotalItems(0);
+          setTotalPages(1);
+          toast.error("No jobs found matching your filters");
+        }
+      } else {
+        console.error("Failed to get filtered jobs");
+        toast.error("Failed to filter jobs");
       }
     } catch (error) {
-      console.error("Failed to delete job", error);
-      toast.error("Failed to delete job");
+      console.error("Error fetching filtered jobs", error);
+      toast.error("Failed to filter jobs");
     } finally {
-      setloading(false);
+      setIsLoading(false);
     }
-  }
+  };
 
+  const handleSearch = () => {
+    if (searchQuery.trim() === "") {
+      setIsSearching(false);
+      setCurrentPage(1);
+      getJobs(1);
+    } else {
+      setIsSearching(true);
+      setCurrentPage(1);
+      searchJobs(1);
+    }
+  };
+
+  const searchJobs = async (page: number) => {
+    try {
+      setIsLoading(true);
+      const res = await API.get(
+        `/api/v3/jobs/search/search?q=${encodeURIComponent(searchQuery)}&page=${page}&limit=${itemsPerPage}`,
+        { headers },
+      );
+
+      if (res.status === 200) {
+        setJobs(res.data.jobs);
+        setTotalItems(res.data.pagination.total);
+        setTotalPages(res.data.pagination.totalPages);
+      } else {
+        console.error("Search failed");
+        toast.error("Search failed");
+      }
+    } catch (error) {
+      console.error("Failed to search jobs", error);
+      toast.error("Failed to search jobs");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setIsSearching(false);
+    setCurrentPage(1);
+    getJobs(1);
+  };
+
+  const applyFilters = () => {
+    if (checkIfFiltersApplied()) {
+      setCurrentPage(1);
+      fetchFilteredJobs(1);
+    } else {
+      setIsFiltering(false);
+      setCurrentPage(1);
+      getJobs(1);
+    }
+  };
+
+  const deleteJobs = async (ids: string[]) => {
+    try {
+      setIsLoading(true);
+      const res = await API.delete("/api/v3/jobs", {
+        headers,
+        data: { jobIds: ids },
+      });
+
+      if (res.status === 200) {
+        toast.success(`Successfully deleted ${res.data.deletedCount} jobs`);
+
+        // Reset select all state
+        setIsSelectAllPages(false);
+
+        if (isSearching) {
+          searchJobs(1);
+        } else if (isFiltering) {
+          fetchFilteredJobs(1);
+        } else {
+          getJobs(1);
+        }
+
+        setIsDeleteModalOpen(false);
+        setSelectedJobs([]);
+      } else {
+        toast.error("Failed to delete jobs");
+      }
+    } catch (error) {
+      console.error("Failed to delete jobs", error);
+      toast.error("Failed to delete jobs");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectJob = (jobId: string, checked: boolean) => {
+    // When manually selecting/deselecting a job, we're no longer in "select all pages" mode
+    if (isSelectAllPages) {
+      setIsSelectAllPages(false);
+    }
+
+    if (checked) {
+      setSelectedJobs([...selectedJobs, jobId]);
+    } else {
+      setSelectedJobs(selectedJobs.filter((id) => id !== jobId));
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+
+    if (isSearching) {
+      searchJobs(page);
+    } else if (isFiltering) {
+      fetchFilteredJobs(page);
+    } else {
+      getJobs(page);
+    }
+  };
+
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    // Note: We don't apply filters immediately anymore,
+    // user needs to click "Apply Filters" button
+  };
+
+  const handleClearFilters = () => {
+    setFilters(initialFilterState);
+    setIsFiltering(false);
+    setCurrentPage(1);
+    getJobs(1);
+  };
+
+  const getAllJobIds = async (): Promise<string[]> => {
+    try {
+      setIsLoading(true);
+
+      let endpoint = "/api/v3/jobs/all-ids/all-ids";
+
+      if (isSearching && searchQuery.trim() !== "") {
+        endpoint = `/api/v3/jobs/search/all-ids/all-ids?q=${encodeURIComponent(searchQuery)}`;
+      } else if (isFiltering && checkIfFiltersApplied()) {
+        const queryParams = new URLSearchParams();
+
+        if (filters.platformFilter)
+          queryParams.append("platformFilter", filters.platformFilter);
+        if (filters.statusFilter)
+          queryParams.append("statusFilter", filters.statusFilter);
+        if (filters.startDate)
+          queryParams.append("startDate", filters.startDate);
+        if (filters.endDate) queryParams.append("endDate", filters.endDate);
+        if (filters.minLikes) queryParams.append("minLikes", filters.minLikes);
+        if (filters.jobIdFilter)
+          queryParams.append("jobIdFilter", filters.jobIdFilter);
+        if (filters.linkTypeNameFilter)
+          queryParams.append("linkTypeNameFilter", filters.linkTypeNameFilter);
+        if (filters.minMaxCount)
+          queryParams.append("minMaxCount", filters.minMaxCount);
+        if (filters.uidFilter)
+          queryParams.append("uidFilter", filters.uidFilter);
+        if (filters.liveFilter !== "all")
+          queryParams.append("liveFilter", String(filters.liveFilter));
+        if (filters.isVipFilter !== "all")
+          queryParams.append("isVipFilter", String(filters.isVipFilter));
+
+        endpoint = `/api/v3/jobs/filtered/all-ids/all-ids?${queryParams.toString()}`;
+      }
+
+      const res = await API.get(endpoint, { headers });
+
+      if (res.status === 200) {
+        return res.data.jobIds || [];
+      } else {
+        console.error("Failed to fetch all job IDs");
+        toast.error("Failed to fetch all job IDs");
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching all job IDs", error);
+      toast.error("Failed to fetch all job IDs");
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectAll = async (checked: boolean) => {
+    if (checked) {
+      // Show toast to indicate loading
+      const loadingToast = toast.loading("Selecting all jobs...");
+
+      // Get all job IDs
+      const allJobIds = await getAllJobIds();
+
+      // Update state
+      setIsSelectAllPages(true);
+      setSelectedJobs(allJobIds);
+
+      // Dismiss loading toast and show success toast
+      toast.dismiss(loadingToast);
+      toast.success(`Selected all ${allJobIds.length} jobs across all pages`);
+    } else {
+      // Clear selection
+      setIsSelectAllPages(false);
+      setSelectedJobs([]);
+      toast.success("Cleared job selection");
+    }
+  };
+
+  // Initial data load
   useEffect(() => {
-    getJobs();
-  }, [refrech]);
+    getJobs(1);
+  }, []);
 
   return (
-    <>
-      <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-        <div className="mb-4 flex w-full items-end justify-end">
-          <Link
-            href="/jobs/create"
-            className="inline-flex items-end justify-end rounded-full bg-primary px-10 py-3 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+    <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onSearch={handleSearch}
+          placeholder="Search across all fields..."
+        />
+        {searchQuery && (
+          <button
+            onClick={clearSearch}
+            className="text-gray-500 text-sm hover:text-primary"
           >
-            Add new job
-          </Link>
+            Clear search
+          </button>
+        )}
+      </div>
+
+      <div className="mb-4">
+        <JobFilters
+          filters={filters}
+          setFilters={handleFilterChange}
+          isExpanded={isFiltersExpanded}
+          onToggle={() => setIsFiltersExpanded(!isFiltersExpanded)}
+          onClear={handleClearFilters}
+          onApply={applyFilters} // New prop for applying filters
+        />
+      </div>
+
+      <div className="mb-6 flex justify-between">
+        <div className="flex gap-4">
+          {selectedJobs.length > 0 && (
+            <>
+              <button
+                onClick={() => {
+                  setSelectedJobs([]);
+                  setIsSelectAllPages(false);
+                }}
+                className="text-gray-700 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-gray"
+              >
+                Unselect all
+              </button>
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="rounded-lg bg-red px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90"
+              >
+                Delete Selected ({selectedJobs.length})
+              </button>
+            </>
+          )}
         </div>
 
-        <div className="max-w-full overflow-x-auto">
-          <div className="flex flex-col">
-            <div className="grid grid-cols-3 rounded-sm bg-gray-2 dark:bg-meta-4 sm:grid-cols-6">
-              <div className="p-2.5 xl:p-5">
-                <h5 className="text-sm font-medium uppercase xsm:text-base">
-                  Platform
-                </h5>
-              </div>
-              <div className="hidden p-2.5 text-center sm:block xl:p-5">
-                <h5 className="text-sm font-medium uppercase xsm:text-base">
-                  Date Published
-                </h5>
-              </div>
+        <Link
+          href="/jobs/create"
+          className="inline-flex items-center rounded-full bg-primary px-10 py-3 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+        >
+          Add new job
+        </Link>
+      </div>
 
-              <div className="p-2.5 text-center xl:p-5">
-                <h5 className="text-sm font-medium uppercase xsm:text-base">
-                  Status
-                </h5>
-              </div>
+      {jobs && (
+        <div className="mb-2 flex w-full items-center justify-center">
+          <h2 className="font-semibold sm:text-lg">
+            {isLoading
+              ? "Loading..."
+              : `${totalItems} ${isSearching ? "Search Results" : "Results"}`}
+            {isSelectAllPages &&
+              selectedJobs.length > 0 &&
+              ` (${selectedJobs.length} selected across all pages)`}
+          </h2>
+        </div>
+      )}
 
-              <div className="hidden p-2.5 text-center sm:block xl:p-5">
-                <h5 className="text-sm font-medium uppercase xsm:text-base">
-                  Job ID
-                </h5>
-              </div>
+      <div className="max-w-full overflow-x-auto">
+        <div className="flex flex-col">
+          <JobTableHeader
+            onSelectAll={handleSelectAll}
+            isAllSelected={
+              isSelectAllPages ||
+              (jobs?.length > 0 && jobs?.length === selectedJobs.length)
+            }
+          />
 
-              <div className="hidden p-2.5 text-center sm:block xl:p-5">
-                <h5 className="text-sm font-medium uppercase xsm:text-base">
-                  Likes
-                </h5>
-              </div>
-
-              <div className="block p-2.5 text-center xl:p-5">
-                <h5 className="text-sm font-medium uppercase xsm:text-base">
-                  Actions
-                </h5>
-              </div>
+          {isLoading ? (
+            <div className="text-gray-500 py-4 text-center">
+              Loading jobs...
             </div>
-
-            {Jobs &&
-              Jobs.map((link, key) => (
-                <div
-                  className={`grid grid-cols-3 hover:bg-slate-100/50 sm:grid-cols-6 ${
-                    key === Jobs.length - 1
-                      ? ""
-                      : "border-b border-stroke dark:border-strokedark"
-                  }`}
-                  key={key}
-                >
-                  <div className="flex items-center gap-3 p-2.5 xl:p-5">
-                    <div className="flex-shrink-0">
-                      <Image
-                        src={"/images/brand/brand-05.svg"}
-                        alt="link"
-                        width={48}
-                        height={48}
-                      />
-                    </div>
-                    <p className="hidden truncate text-black dark:text-white sm:block">
-                      {link.platform}
-                    </p>
-                  </div>
-
-                  <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-                    <p className="text-black dark:text-white">
-                      {" "}
-                      {new Date(link.datePublished).toLocaleDateString()}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-center p-2.5 xl:p-5">
-                    <p
-                      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-                        link.status === "Active"
-                          ? "bg-success text-success"
-                          : "bg-danger text-danger"
-                      }`}
-                    >
-                      {link.status}
-                    </p>
-                  </div>
-
-                  <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-                    <p className="truncate text-black dark:text-white">
-                      {link.jobId}
-                    </p>
-                  </div>
-
-                  <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-                    <p className="text-meta-5">{link.likeCount}</p>
-                  </div>
-
-                  <div className="flex items-center justify-center space-x-3.5">
-                    <Link
-                      href={`/jobs/${link._id}`}
-                      className="hover:text-primary"
-                    >
-                      <svg
-                        className="fill-current"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 18 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M8.99981 14.8219C3.43106 14.8219 0.674805 9.50624 0.562305 9.28124C0.47793 9.11249 0.47793 8.88749 0.562305 8.71874C0.674805 8.49374 3.43106 3.20624 8.99981 3.20624C14.5686 3.20624 17.3248 8.49374 17.4373 8.71874C17.5217 8.88749 17.5217 9.11249 17.4373 9.28124C17.3248 9.50624 14.5686 14.8219 8.99981 14.8219ZM1.85605 8.99999C2.4748 10.0406 4.89356 13.5562 8.99981 13.5562C13.1061 13.5562 15.5248 10.0406 16.1436 8.99999C15.5248 7.95936 13.1061 4.44374 8.99981 4.44374C4.89356 4.44374 2.4748 7.95936 1.85605 8.99999Z"
-                          fill=""
-                        />
-                        <path
-                          d="M9 11.3906C7.67812 11.3906 6.60938 10.3219 6.60938 9C6.60938 7.67813 7.67812 6.60938 9 6.60938C10.3219 6.60938 11.3906 7.67813 11.3906 9C11.3906 10.3219 10.3219 11.3906 9 11.3906ZM9 7.875C8.38125 7.875 7.875 8.38125 7.875 9C7.875 9.61875 8.38125 10.125 9 10.125C9.61875 10.125 10.125 9.61875 10.125 9C10.125 8.38125 9.61875 7.875 9 7.875Z"
-                          fill=""
-                        />
-                      </svg>
-                    </Link>
-                    <button
-                      className="hover:text-red"
-                      onClick={() => {
-                        setShowModal(true);
-                        setJobId(link._id);
-                      }}
-                    >
-                      <svg
-                        className="fill-current"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 18 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M13.7535 2.47502H11.5879V1.9969C11.5879 1.15315 10.9129 0.478149 10.0691 0.478149H7.90352C7.05977 0.478149 6.38477 1.15315 6.38477 1.9969V2.47502H4.21914C3.40352 2.47502 2.72852 3.15002 2.72852 3.96565V4.8094C2.72852 5.42815 3.09414 5.9344 3.62852 6.1594L4.07852 15.4688C4.13477 16.6219 5.09102 17.5219 6.24414 17.5219H11.7004C12.8535 17.5219 13.8098 16.6219 13.866 15.4688L14.3441 6.13127C14.8785 5.90627 15.2441 5.3719 15.2441 4.78127V3.93752C15.2441 3.15002 14.5691 2.47502 13.7535 2.47502ZM7.67852 1.9969C7.67852 1.85627 7.79102 1.74377 7.93164 1.74377H10.0973C10.2379 1.74377 10.3504 1.85627 10.3504 1.9969V2.47502H7.70664V1.9969H7.67852ZM4.02227 3.96565C4.02227 3.85315 4.10664 3.74065 4.24727 3.74065H13.7535C13.866 3.74065 13.9785 3.82502 13.9785 3.96565V4.8094C13.9785 4.9219 13.8941 5.0344 13.7535 5.0344H4.24727C4.13477 5.0344 4.02227 4.95002 4.02227 4.8094V3.96565ZM11.7285 16.2563H6.27227C5.79414 16.2563 5.40039 15.8906 5.37227 15.3844L4.95039 6.2719H13.0785L12.6566 15.3844C12.6004 15.8625 12.2066 16.2563 11.7285 16.2563Z"
-                          fill=""
-                        />
-                        <path
-                          d="M9.00039 9.11255C8.66289 9.11255 8.35352 9.3938 8.35352 9.75942V13.3313C8.35352 13.6688 8.63477 13.9782 9.00039 13.9782C9.33789 13.9782 9.64727 13.6969 9.64727 13.3313V9.75942C9.64727 9.3938 9.33789 9.11255 9.00039 9.11255Z"
-                          fill=""
-                        />
-                        <path
-                          d="M11.2502 9.67504C10.8846 9.64692 10.6033 9.90004 10.5752 10.2657L10.4064 12.7407C10.3783 13.0782 10.6314 13.3875 10.9971 13.4157C11.0252 13.4157 11.0252 13.4157 11.0533 13.4157C11.3908 13.4157 11.6721 13.1625 11.6721 12.825L11.8408 10.35C11.8408 9.98442 11.5877 9.70317 11.2502 9.67504Z"
-                          fill=""
-                        />
-                        <path
-                          d="M6.72245 9.67504C6.38495 9.70317 6.1037 10.0125 6.13182 10.35L6.3287 12.825C6.35683 13.1625 6.63808 13.4157 6.94745 13.4157C6.97558 13.4157 6.97558 13.4157 7.0037 13.4157C7.3412 13.3875 7.62245 13.0782 7.59433 12.7407L7.39745 10.2657C7.39745 9.90004 7.08808 9.64692 6.72245 9.67504Z"
-                          fill=""
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              ))}
-          </div>
+          ) : jobs?.length > 0 ? (
+            jobs.map((job) => (
+              <JobTableRow
+                key={job._id}
+                job={job}
+                isSelected={selectedJobs.includes(job._id)}
+                onSelect={handleSelectJob}
+                onDelete={() => {
+                  setSelectedJobs([job._id]);
+                  setIsDeleteModalOpen(true);
+                }}
+              />
+            ))
+          ) : (
+            <div className="text-gray-500 py-4 text-center">
+              No jobs found matching your criteria.
+            </div>
+          )}
         </div>
       </div>
 
-      {ShowModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-700 bg-opacity-50">
-          <div className="rounded-lg bg-white p-6 text-center shadow-lg">
-            <p className="mb-4 text-lg font-semibold">Confirm deletion ?</p>
-            <div className="flex w-full items-center space-x-4">
-              <button
-                disabled={loading}
-                className="flex w-full justify-center rounded bg-red p-3 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
-                onClick={() => deleteJob(JobId)}
-              >
-                Delete
-              </button>
-              <button
-                disabled={loading}
-                className="flex w-full justify-center rounded bg-slate-400 p-3 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+        className="mx-4 my-4"
+      />
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDelete={() => deleteJobs(selectedJobs)}
+        selectedCount={selectedJobs.length}
+        isLoading={isLoading}
+      />
+    </div>
   );
 };
 

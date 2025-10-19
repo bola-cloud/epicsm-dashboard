@@ -10,6 +10,7 @@ import Breadcrumb from "../Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
 import API from "@/utils/API";
+import { User } from "@/types/user";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -20,6 +21,7 @@ function JobDetails() {
   const { id } = useParams();
   const [Job, setJob] = useState<Job | undefined>();
   const [enabled, setEnabled] = useState(false);
+  const [User, setUser] = useState<User | undefined>();
 
   async function getJob() {
     try {
@@ -38,21 +40,45 @@ function JobDetails() {
     }
   }
 
+  async function getUser() {
+    try {
+      const res = await API.get(`/api/v3/users/firestore/${Job?.uid}`, {
+        headers,
+      });
+
+      if (res.status === 200) {
+        setUser(res.data);
+      } else {
+        console.error("No user found");
+        toast.error("No user found");
+      }
+    } catch (error) {
+      console.error("Failed to fetch user", error);
+      toast.error("Failed to fetch user");
+    }
+  }
+
   useEffect(() => {
     getJob();
   }, [id]);
 
   useEffect(() => {
     Job?.isLive ? setEnabled(true) : setEnabled(false);
+
+    getUser();
   }, [Job]);
 
   async function UpdateJob() {
     try {
-      const res = await API.put(`/api/v3/jobs/${id}`, {
-        isLive: !enabled,
-      }, {
-        headers,
-      });
+      const res = await API.put(
+        `/api/v3/jobs/${id}`,
+        {
+          isLive: !enabled,
+        },
+        {
+          headers,
+        },
+      );
 
       if (res.status === 201) {
         setEnabled(!enabled);
@@ -67,6 +93,8 @@ function JobDetails() {
       toast.error("Error updating job");
     }
   }
+
+  console.log(User);
 
   return (
     <section className="w-full">
@@ -87,6 +115,7 @@ function JobDetails() {
               }}
             />
           </div>
+
           <div className="px-4 pb-6 text-center lg:pb-8 xl:pb-11.5">
             <div className="relative z-30 mx-auto -mt-22 h-30 w-full max-w-30 rounded-full bg-white/20 p-1 backdrop-blur sm:h-44 sm:max-w-44 sm:p-3">
               <div className="relative drop-shadow-2">
@@ -97,11 +126,18 @@ function JobDetails() {
                   alt="profile"
                 />
               </div>
+
+              {Job?.isVip && (
+                <span className="mt-2 inline-block items-center rounded-full bg-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+                  VIP
+                </span>
+              )}
             </div>
-            <div className="mt-4">
+            <div className="mt-5">
               <h3 className="mb-1.5 text-2xl font-semibold text-black dark:text-white">
                 {Job?._id}
               </h3>
+              <p className="font-medium">User id: {Job?.uid}</p>
               <p className="font-medium">Platform: {Job?.platform}</p>
               <p className="font-medium">Country: {Job?.country}</p>
 
@@ -119,7 +155,8 @@ function JobDetails() {
 
                 {Job?.linkTypeName && (
                   <li>
-                    <span>Objective: </span>{Job?.linkTypeName}
+                    <span>Objective: </span>
+                    {Job?.linkTypeName}
                   </li>
                 )}
 

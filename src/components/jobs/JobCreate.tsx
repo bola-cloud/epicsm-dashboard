@@ -1,15 +1,38 @@
 "use client";
 
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import Select from "../common/Select";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
+import countryCodes from "@/utils/countryCodes";
+import API from "@/utils/API";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
   "Content-Type": "application/json",
 };
+
+const PLATFORM_OPTIONS = ["Facebook", "Instagram"] as const;
+const FACEBOOK_TYPES = ["post", "page/profile", "group"] as const;
+const FACEBOOK_POST_OBJECTIVES = [
+  "Like",
+  "Love",
+  "Care",
+  "Haha",
+  "Wow",
+  "Sad",
+  "Angry",
+] as const;
+const FACEBOOK_PROFILE_OBJECTIVES = [
+  "AddFriend",
+  "FollowAccount",
+  "LikePage",
+] as const;
+const FACEBOOK_GROUP_OBJECTIVES = ["JoinGroup"] as const;
+const INSTAGRAM_OBJECTIVES = ["InstaLike", "InstaFollowAccount"];
+
+type PlatformOption = (typeof PLATFORM_OPTIONS)[number];
+type FacebookType = (typeof FACEBOOK_TYPES)[number] | "";
 
 function JobCreate() {
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
@@ -18,18 +41,21 @@ function JobCreate() {
   const [loading, setloading] = useState(false);
   const [formData, setFormData] = useState({
     link: "",
-    platform: "Facebook",
-    type: "",
+    platform: "Facebook" as PlatformOption,
+    type: "" as FacebookType,
     linkTypeName: "",
     maxCount: 0,
     finishDate: "",
     country: "all",
+    isVip: false,
   });
 
   const handleChange = (e: any) => {
+    const { name, value, type, checked } = e.target;
+    const inputValue = type === "checkbox" ? checked : value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: inputValue,
     });
   };
 
@@ -51,11 +77,7 @@ function JobCreate() {
     if (isValidLink(link)) {
       try {
         setloading(true);
-        const response = await axios.post(
-          "https://api.epicsm.goviral.ma/api/v3/jobs",
-          formData,
-          { headers },
-        );
+        const response = await API.post("/api/v3/jobs", formData, { headers });
 
         if (response.status === 201) {
           toast.success("Job added");
@@ -68,6 +90,7 @@ function JobCreate() {
             maxCount: 0,
             type: "",
             country: "all",
+            isVip: false,
           });
         }
       } catch (error: any) {
@@ -80,257 +103,38 @@ function JobCreate() {
     }
   };
 
-  const countryCodes = [
-    "all",
-    "AF",
-    "AL",
-    "DZ",
-    "AS",
-    "AD",
-    "AO",
-    "AI",
-    "AQ",
-    "AG",
-    "AR",
-    "AM",
-    "AW",
-    "AU",
-    "AT",
-    "AZ",
-    "BS",
-    "BH",
-    "BD",
-    "BB",
-    "BY",
-    "BE",
-    "BZ",
-    "BJ",
-    "BM",
-    "BT",
-    "BO",
-    "BA",
-    "BW",
-    "BR",
-    "IO",
-    "BN",
-    "BG",
-    "BF",
-    "BI",
-    "CV",
-    "KH",
-    "CM",
-    "CA",
-    "KY",
-    "CF",
-    "TD",
-    "CL",
-    "CN",
-    "CO",
-    "KM",
-    "CG",
-    "CD",
-    "CR",
-    "HR",
-    "CU",
-    "CY",
-    "CZ",
-    "DK",
-    "DJ",
-    "DM",
-    "DO",
-    "EC",
-    "EG",
-    "SV",
-    "GQ",
-    "ER",
-    "EE",
-    "SZ",
-    "ET",
-    "FJ",
-    "FI",
-    "FR",
-    "GF",
-    "PF",
-    "GA",
-    "GM",
-    "GE",
-    "DE",
-    "GH",
-    "GI",
-    "GR",
-    "GL",
-    "GD",
-    "GP",
-    "GU",
-    "GT",
-    "GG",
-    "GN",
-    "GW",
-    "GY",
-    "HT",
-    "HN",
-    "HK",
-    "HU",
-    "IS",
-    "IN",
-    "ID",
-    "IR",
-    "IQ",
-    "IE",
-    "IM",
-    "IL",
-    "IT",
-    "JM",
-    "JP",
-    "JE",
-    "JO",
-    "KZ",
-    "KE",
-    "KI",
-    "KP",
-    "KR",
-    "KW",
-    "KG",
-    "LA",
-    "LV",
-    "LB",
-    "LS",
-    "LR",
-    "LY",
-    "LI",
-    "LT",
-    "LU",
-    "MO",
-    "MG",
-    "MW",
-    "MY",
-    "MV",
-    "ML",
-    "MT",
-    "MH",
-    "MQ",
-    "MR",
-    "MU",
-    "YT",
-    "MX",
-    "FM",
-    "MD",
-    "MC",
-    "MN",
-    "ME",
-    "MS",
-    "MA",
-    "MZ",
-    "MM",
-    "NA",
-    "NR",
-    "NP",
-    "NL",
-    "NC",
-    "NZ",
-    "NI",
-    "NE",
-    "NG",
-    "NU",
-    "NF",
-    "MK",
-    "MP",
-    "NO",
-    "OM",
-    "PK",
-    "PW",
-    "PA",
-    "PG",
-    "PY",
-    "PE",
-    "PH",
-    "PL",
-    "PT",
-    "PR",
-    "QA",
-    "RO",
-    "RU",
-    "RW",
-    "RE",
-    "BL",
-    "SH",
-    "KN",
-    "LC",
-    "MF",
-    "PM",
-    "VC",
-    "WS",
-    "SM",
-    "ST",
-    "SA",
-    "SN",
-    "RS",
-    "SC",
-    "SL",
-    "SG",
-    "SX",
-    "SK",
-    "SI",
-    "SB",
-    "SO",
-    "ZA",
-    "SS",
-    "ES",
-    "LK",
-    "SD",
-    "SR",
-    "SE",
-    "CH",
-    "SY",
-    "TW",
-    "TJ",
-    "TZ",
-    "TH",
-    "TL",
-    "TG",
-    "TO",
-    "TT",
-    "TN",
-    "TR",
-    "TM",
-    "TV",
-    "UG",
-    "UA",
-    "AE",
-    "GB",
-    "US",
-    "UY",
-    "UZ",
-    "VU",
-    "VA",
-    "VE",
-    "VN",
-    "WF",
-    "EH",
-    "YE",
-    "ZM",
-    "ZW",
-  ];
-
   useEffect(() => {
-    if (formData.type === "post") {
-      setLinkTypeNameData([
-        "Like",
-        "Love",
-        "Care",
-        "Haha",
-        "Wow",
-        "Sad",
-        "Angry",
-      ]);
-    } else if (formData.type === "page/profile") {
-      setLinkTypeNameData(["AddFriend", "FollowAccount", "LikePage"]);
-    } else if (formData.type === "group") {
-      setLinkTypeNameData(["JoinGroup"]);
-    } else {
-      setLinkTypeNameData([""]);
+    if (formData.platform === "Facebook") {
+      let objectives: readonly string[] = [""];
+
+      if (formData.type === "post") {
+        objectives = FACEBOOK_POST_OBJECTIVES;
+      } else if (formData.type === "page/profile") {
+        objectives = FACEBOOK_PROFILE_OBJECTIVES;
+      } else if (formData.type === "group") {
+        objectives = FACEBOOK_GROUP_OBJECTIVES;
+      }
+
+      setLinkTypeNameData(objectives.slice());
+
+      if (!objectives.includes(formData.linkTypeName)) {
+        setFormData((prev) => ({
+          ...prev,
+          linkTypeName: objectives.length ? objectives[0] : "",
+        }));
+      }
+    } else if (formData.platform === "Instagram") {
+      setLinkTypeNameData(INSTAGRAM_OBJECTIVES.slice());
+
+      if (!INSTAGRAM_OBJECTIVES.includes(formData.linkTypeName)) {
+        setFormData((prev) => ({
+          ...prev,
+          type: "post",
+          linkTypeName: INSTAGRAM_OBJECTIVES[0],
+        }));
+      }
     }
-  }, [formData.type]);
+  }, [formData.platform, formData.type, formData.linkTypeName]);
 
   return (
     <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -356,34 +160,54 @@ function JobCreate() {
 
           <Select
             label="Platform"
-            data={["Facebook"]}
+            data={Array.from(PLATFORM_OPTIONS)}
             selectedOption={formData.platform}
-            setSelectedOption={(value: any) =>
-              setFormData((prevData) => ({ ...prevData, platform: value }))
+            setSelectedOption={(value: string) =>
+              setFormData((prevData) => ({
+                ...prevData,
+                platform: value as PlatformOption,
+                type:
+                  value === "Facebook"
+                    ? prevData.type
+                    : ("post" as FacebookType),
+                linkTypeName:
+                  value === "Facebook"
+                    ? ""
+                    : INSTAGRAM_OBJECTIVES[0],
+              }))
             }
             isOptionSelected={isOptionSelected}
             setIsOptionSelected={setIsOptionSelected}
             required
           />
 
-          <Select
-            label="Type"
-            data={["post", "page/profile", "group"]}
-            selectedOption={formData.type}
-            setSelectedOption={(value: any) =>
-              setFormData((prevData) => ({ ...prevData, type: value }))
-            }
-            isOptionSelected={isOptionSelected}
-            setIsOptionSelected={setIsOptionSelected}
-            required
-          />
+          {formData.platform === "Facebook" && (
+            <Select
+              label="Type"
+              data={Array.from(FACEBOOK_TYPES)}
+              selectedOption={formData.type}
+              setSelectedOption={(value: string) =>
+                setFormData((prevData) => ({
+                  ...prevData,
+                  type: value as FacebookType,
+                  linkTypeName: "",
+                }))
+              }
+              isOptionSelected={isOptionSelected}
+              setIsOptionSelected={setIsOptionSelected}
+              required
+            />
+          )}
 
           <Select
             label="Objective"
             data={linkTypeNameData}
             selectedOption={formData.linkTypeName}
-            setSelectedOption={(value: any) =>
-              setFormData((prevData) => ({ ...prevData, linkTypeName: value }))
+            setSelectedOption={(value: string) =>
+              setFormData((prevData) => ({
+                ...prevData,
+                linkTypeName: value,
+              }))
             }
             isOptionSelected={isOptionSelected}
             setIsOptionSelected={setIsOptionSelected}
@@ -417,6 +241,29 @@ function JobCreate() {
               min={0}
               onWheel={(e) => e.currentTarget.blur()}
             />
+          </div>
+
+          <div className="mb-4.5 flex items-center">
+            <label className="flex cursor-pointer select-none items-center">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  name="isVip"
+                  checked={formData.isVip}
+                  onChange={handleChange}
+                  className="sr-only"
+                />
+                <div className="block h-8 w-14 rounded-full bg-[#E5E7EB] dark:bg-form-strokedark"></div>
+                <div
+                  className={`absolute left-1 top-1 h-6 w-6 rounded-full bg-white transition ${
+                    formData.isVip && "!right-1 !translate-x-full !bg-primary"
+                  }`}
+                ></div>
+              </div>
+              <span className="ml-3 text-sm font-medium text-black dark:text-white">
+                VIP
+              </span>
+            </label>
           </div>
 
           {/* <div className="mb-4.5">
