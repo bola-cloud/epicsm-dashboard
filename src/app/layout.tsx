@@ -32,9 +32,11 @@ export default function RootLayout({
     setTimeout(() => setLoading(false), 1000);
   }, []);
 
-  if (!getJwtFromLocalStorage()) {
-    router.push("/login");
-  }
+  useEffect(() => {
+    if (!getJwtFromLocalStorage()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   async function checkToken() {
     try {
