@@ -16,6 +16,10 @@ export interface Job {
   type?: string | null;
   uid: string;
   isVip?: boolean;
+  adminId?: { _id: string; name: string; email: string } | string;
+  targetLink?: string;
+  actionType?: string;
+  creatorId?: string;
 }
 
 export interface FilterState {

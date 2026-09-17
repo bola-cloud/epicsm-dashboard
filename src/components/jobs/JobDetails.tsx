@@ -29,20 +29,32 @@ function JobDetails() {
 
       if (res.status === 200) {
         setJob(res.data);
-        console.log(res);
       } else {
         console.error("No Job found");
         toast.error("No Job found");
       }
     } catch (error) {
-      console.error("Failed to fetch Job", error);
-      toast.error("Failed to fetch Job");
+      try {
+        const resV2 = await API.get(`https://api.epicsm.goviral.ma/api/v4/admin/v2/jobs/${id}`);
+        if (resV2.status === 200) {
+          setJob({ ...resV2.data, isV2: true });
+        } else {
+          console.error("No Job found in V2 either");
+          toast.error("No Job found");
+        }
+      } catch (err2) {
+        console.error("Failed to fetch Job", err2);
+        toast.error("Failed to fetch Job");
+      }
     }
   }
 
   async function getUser() {
+    const userIdToFetch = Job?.uid || Job?.creatorId;
+    if (!userIdToFetch || userIdToFetch === "----admin----") return;
+
     try {
-      const res = await API.get(`/api/v3/users/firestore/${Job?.uid}`, {
+      const res = await API.get(`/api/v3/users/firestore/${userIdToFetch}`, {
         headers,
       });
 
@@ -63,13 +75,35 @@ function JobDetails() {
   }, [id]);
 
   useEffect(() => {
-    Job?.isLive ? setEnabled(true) : setEnabled(false);
+    if ((Job as any)?.isV2) {
+      setEnabled(Job?.status === "Active");
+    } else {
+      Job?.isLive ? setEnabled(true) : setEnabled(false);
+    }
 
     getUser();
   }, [Job]);
 
   async function UpdateJob() {
     try {
+      if ((Job as any)?.isV2) {
+        const res = await API.put(
+          `https://api.epicsm.goviral.ma/api/v4/admin/v2/jobs/${id}/status`,
+          {
+            status: !enabled ? "Active" : "Paused",
+          },
+          { headers }
+        );
+        if (res.status === 200) {
+          setEnabled(!enabled);
+          toast.success("Job Updated");
+          setJob({ ...res.data, isV2: true });
+        } else {
+          toast.error("Failed to update V2 job");
+        }
+        return;
+      }
+
       const res = await API.put(
         `/api/v3/jobs/${id}`,
         {
@@ -97,7 +131,7 @@ function JobDetails() {
   console.log(User);
 
   return (
-    <section className="w-full">
+    <section className="w-full h-full min-h-screen bg-transparent dark:bg-boxdark-2">
       <div className="mx-auto max-w-242.5">
         <Breadcrumb pageName="Job" />
 
@@ -135,28 +169,40 @@ function JobDetails() {
             </div>
             <div className="mt-5">
               <h3 className="mb-1.5 text-2xl font-semibold text-black dark:text-white">
-                {Job?._id}
+                {(Job as any)?.jobId || Job?._id}
               </h3>
-              <p className="font-medium">User id: {Job?.uid}</p>
-              <p className="font-medium">Platform: {Job?.platform}</p>
-              <p className="font-medium">Country: {Job?.country}</p>
+              <p className="font-medium text-black dark:text-white">
+                User id: {Job?.creatorId === "----admin----" ? "Admin (Dashboard)" : (Job?.uid || Job?.creatorId || "N/A")}
+              </p>
+              {User?.name && (
+                <p className="font-medium text-meta-5">
+                  Name: {User.name}
+                </p>
+              )}
+              {User?.email && (
+                <p className="font-medium text-meta-5">
+                  Email: {User.email}
+                </p>
+              )}
+              <p className="font-medium text-black dark:text-white">Platform: {Job?.platform}</p>
+              {Job?.country && <p className="font-medium text-black dark:text-white">Country: {Job?.country}</p>}
 
-              <ul className="mb-5 flex flex-col gap-2">
+              <ul className="mb-5 flex flex-col gap-2 text-black dark:text-white">
                 <li>
                   <span>Status:</span> {Job?.status}
                 </li>
 
-                {Job?.datePublished && (
+                {(Job?.datePublished || Job?.createdAt) && (
                   <li>
                     <span>Published On:</span>{" "}
-                    {format(Job?.datePublished, "d MMMM yyyy")}
+                    {format(new Date(Job?.datePublished || Job?.createdAt || ""), "d MMMM yyyy, h:mm a")}
                   </li>
                 )}
 
-                {Job?.linkTypeName && (
+                {(Job?.linkTypeName || Job?.actionType) && (
                   <li>
                     <span>Objective: </span>
-                    {Job?.linkTypeName}
+                    {Job?.linkTypeName || Job?.actionType}
                   </li>
                 )}
 
@@ -168,21 +214,21 @@ function JobDetails() {
                 )}
 
                 <li>
-                  <span>Likes:</span> {Job?.likeCount}
+                  <span>Likes:</span> {Job?.likeCount || 0} / {Job?.maxCount}
                 </li>
 
-                {Job?.link && (
+                {(Job?.link || Job?.targetLink) && (
                   <li>
                     <span>Link:</span>{" "}
-                    <a className="text-blue-500 underline" href={Job?.link}>
-                      {Job?.link}
+                    <a className="text-blue-500 underline" href={Job?.link || Job?.targetLink}>
+                      {Job?.link || Job?.targetLink}
                     </a>
                   </li>
                 )}
 
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-2 mt-4">
                   <li>
-                    <span>Live:</span> {Job?.isLive ? "Yes" : "No"}
+                    <span>Live:</span> {(Job as any)?.isV2 ? (Job?.status === "Active" ? "Yes" : "No") : (Job?.isLive ? "Yes" : "No")}
                   </li>
 
                   <label

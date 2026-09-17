@@ -1,27 +1,94 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
+
+const PLATFORM_OPTIONS = ["Facebook", "Instagram"] as const;
+const FACEBOOK_TYPES = ["post", "page/profile", "group"] as const;
+
+const FACEBOOK_POST_OBJECTIVES = [
+  "Like",
+  "Love",
+  "Care",
+  "Haha",
+  "Wow",
+  "Sad",
+  "Angry"
+] as const;
+
+const FACEBOOK_PROFILE_OBJECTIVES = [
+  "AddFriend",
+  "FollowAccount",
+  "LikePage",
+] as const;
+
+const FACEBOOK_GROUP_OBJECTIVES = ["JoinGroup"] as const;
+const INSTAGRAM_OBJECTIVES = ["InstaLike", "InstaFollowAccount"];
+
+type PlatformOption = (typeof PLATFORM_OPTIONS)[number];
+type FacebookType = (typeof FACEBOOK_TYPES)[number] | "";
 
 const CreateJobV2 = () => {
   const [targetLink, setTargetLink] = useState("");
-  const [platform, setPlatform] = useState("facebook");
-  const [actionType, setActionType] = useState("follow");
+  const [platform, setPlatform] = useState<PlatformOption>("Facebook");
+  const [type, setType] = useState<FacebookType>("post");
+  const [linkTypeName, setLinkTypeName] = useState<string>("Like");
   const [maxCount, setMaxCount] = useState(100);
   const [isVip, setIsVip] = useState(false);
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const [availableObjectives, setAvailableObjectives] = useState<readonly string[]>(FACEBOOK_POST_OBJECTIVES);
+
+  useEffect(() => {
+    if (platform === "Facebook") {
+      let objectives: readonly string[] = FACEBOOK_POST_OBJECTIVES;
+      if (type === "post") objectives = FACEBOOK_POST_OBJECTIVES;
+      else if (type === "page/profile") objectives = FACEBOOK_PROFILE_OBJECTIVES;
+      else if (type === "group") objectives = FACEBOOK_GROUP_OBJECTIVES;
+
+      setAvailableObjectives(objectives);
+      if (!objectives.includes(linkTypeName as any)) {
+        setLinkTypeName(objectives[0]);
+      }
+    } else {
+      setAvailableObjectives(INSTAGRAM_OBJECTIVES);
+      if (!INSTAGRAM_OBJECTIVES.includes(linkTypeName as any)) {
+        setLinkTypeName(INSTAGRAM_OBJECTIVES[0]);
+      }
+    }
+  }, [platform, type]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setStatus("");
+
+    // Derive internal actionType based on the selected objective
+    let actionType = "like";
+    const lowerType = linkTypeName.toLowerCase();
+    
+    if (lowerType.includes("follow") || lowerType.includes("friend")) actionType = "follow";
+    else if (lowerType.includes("comment")) actionType = "comment";
+    else if (lowerType.includes("view")) actionType = "view";
+    else if (lowerType.includes("share")) actionType = "share";
+
+    const comments: string[] = [];
+
     try {
-      // In production, the API URL might be dynamic or configured via env
       const res = await fetch("https://api.epicsm.goviral.ma/api/v4/admin/v2/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetLink, platform, actionType, maxCount, isVip }),
+        body: JSON.stringify({ 
+          targetLink, 
+          platform: platform.toLowerCase(), 
+          actionType, 
+          type: platform === "Facebook" ? type : "post",
+          linkTypeName,
+          maxCount, 
+          isVip,
+          comments: []
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -60,24 +127,40 @@ const CreateJobV2 = () => {
               <label className="mb-2.5 block text-black dark:text-white">Platform</label>
               <select
                 value={platform}
-                onChange={(e) => setPlatform(e.target.value)}
+                onChange={(e) => setPlatform(e.target.value as PlatformOption)}
                 className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
               >
-                <option value="facebook">Facebook</option>
-                <option value="instagram">Instagram</option>
+                {PLATFORM_OPTIONS.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
               </select>
             </div>
 
+            {platform === "Facebook" && (
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">Type</label>
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value as FacebookType)}
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                >
+                  {FACEBOOK_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="mb-4.5">
-              <label className="mb-2.5 block text-black dark:text-white">Action Type</label>
+              <label className="mb-2.5 block text-black dark:text-white">Objective / Action</label>
               <select
-                value={actionType}
-                onChange={(e) => setActionType(e.target.value)}
+                value={linkTypeName}
+                onChange={(e) => setLinkTypeName(e.target.value)}
                 className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
               >
-                <option value="follow">Follow</option>
-                <option value="like">Like</option>
-                <option value="comment">Comment</option>
+                {availableObjectives.map((obj) => (
+                  <option key={obj} value={obj}>{obj}</option>
+                ))}
               </select>
             </div>
 
@@ -94,7 +177,7 @@ const CreateJobV2 = () => {
             </div>
 
             <div className="mb-4.5">
-              <label className="mb-2.5 block text-black dark:text-white">Max Count</label>
+              <label className="mb-2.5 block text-black dark:text-white">Max Count (Target Number)</label>
               <input
                 type="number"
                 min={1}

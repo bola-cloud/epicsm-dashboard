@@ -28,6 +28,8 @@ const CookieSettings = () => {
   const [adminCookieLoading, setAdminCookieLoading] = useState(false);
 
   // --- Extraction account ---
+  const [exPlatform, setExPlatform] = useState("facebook");
+  const [searchQuery, setSearchQuery] = useState("");
   const [usersWithCookies, setUsersWithCookies] = useState<UserWithCookies[]>([]);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [extractionAccounts, setExtractionAccounts] = useState<ExtractionAccount[]>([]);
@@ -77,9 +79,9 @@ const CookieSettings = () => {
 
   useEffect(() => {
     if (extractionAccounts.length >= 0) {
-      fetchUsersWithCookies("facebook");
+      fetchUsersWithCookies(exPlatform);
     }
-  }, [extractionAccounts.length]);
+  }, [extractionAccounts.length, exPlatform]);
 
   // Save admin raw cookies
   const handleAdminCookieSubmit = async (e: React.FormEvent) => {
@@ -111,7 +113,7 @@ const CookieSettings = () => {
       const res = await fetch(`${API_BASE}/extraction-account`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ platform: "facebook", userId: selectedUserId }),
+        body: JSON.stringify({ platform: exPlatform, userId: selectedUserId }),
       });
       const data = await res.json();
       setExMsg(res.ok ? `success:${data.message}` : `error:${data.message}`);
@@ -126,6 +128,12 @@ const CookieSettings = () => {
   const getExtractionForPlatform = (plat: string) =>
     extractionAccounts.find((a) => a.platform === plat);
 
+  const filteredUsers = usersWithCookies.filter((u) => {
+    const nameMatch = (u.name || "").toLowerCase().includes(searchQuery.toLowerCase());
+    const emailMatch = (u.email || "").toLowerCase().includes(searchQuery.toLowerCase());
+    return nameMatch || emailMatch;
+  });
+
   return (
     <DefaultLayout>
       <div className="mb-6">
@@ -138,35 +146,65 @@ const CookieSettings = () => {
         {/* ==================== EXTRACTION ACCOUNT ==================== */}
         <div className="flex flex-col gap-6">
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="border-b border-stroke px-6 py-4 dark:border-strokedark flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary bg-opacity-10">
-                <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+            <div className="border-b border-stroke px-6 py-4 dark:border-strokedark flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary bg-opacity-10">
+                  <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-black dark:text-white capitalize">{exPlatform} Extraction Account</h3>
+                  <p className="text-xs text-gray-400">Select the user whose {exPlatform} cookies will be used</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-black dark:text-white">Facebook Extraction Account</h3>
-                <p className="text-xs text-gray-400">Select the user whose Facebook cookies will be used to resolve target_id for all Facebook jobs</p>
-              </div>
+              <select
+                value={exPlatform}
+                onChange={(e) => setExPlatform(e.target.value)}
+                className="rounded border-[1.5px] border-stroke bg-transparent px-3 py-1 text-sm text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+              >
+                <option value="facebook">Facebook</option>
+                <option value="instagram">Instagram</option>
+              </select>
             </div>
 
             <div className="p-6">
               {/* Note about Instagram */}
-              <div className="mb-4 rounded-lg border border-warning border-opacity-30 bg-warning bg-opacity-5 p-3 text-sm text-warning">
-                ⚠️ Instagram cookie extraction is disabled (unreliable). Only Facebook extraction account is needed.
-              </div>
+              {exPlatform === "instagram" && (
+                <div className="mb-4 rounded-lg border border-warning border-opacity-30 bg-warning bg-opacity-5 p-3 text-sm text-warning">
+                  ⚠️ Instagram cookie extraction is disabled in the mobile app by default. Users will not appear here unless the app is updated to send them. Use Admin Cookies (Fallback) instead if this list is empty.
+                </div>
+              )}
 
               {/* Users list */}
               {usersLoading ? (
                 <div className="py-8 text-center text-sm text-gray-400">Loading users...</div>
               ) : usersWithCookies.length === 0 ? (
                 <div className="rounded-lg border border-warning border-opacity-30 bg-warning bg-opacity-5 p-4 text-center">
-                  <p className="text-sm text-warning font-medium">No users with Facebook cookies found</p>
-                  <p className="text-xs text-gray-400 mt-1">Users need to send their Facebook cookies via the mobile app first</p>
+                  <p className="text-sm text-warning font-medium">No users with {exPlatform} cookies found</p>
+                  <p className="text-xs text-gray-400 mt-1">Users need to send their {exPlatform} cookies via the mobile app first</p>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2 mb-4 max-h-72 overflow-y-auto">
-                  {usersWithCookies.map((user) => (
+                <>
+                  <div className="mb-4 relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Search users by name or email..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full rounded border-[1.5px] border-stroke bg-transparent pl-10 pr-4 py-2 text-sm text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 mb-4 max-h-72 overflow-y-auto pr-2">
+                    {filteredUsers.length === 0 ? (
+                      <div className="py-4 text-center text-sm text-gray-400">No users match your search.</div>
+                    ) : (
+                      filteredUsers.map((user) => (
                     <label
                       key={user._id}
                       className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all ${
@@ -191,9 +229,8 @@ const CookieSettings = () => {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-black dark:text-white truncate">{user.name || user.email}</p>
-                        <p className="text-xs text-gray-400 truncate">{user.email}</p>
-                        <p className="text-xs text-gray-300 font-mono truncate">{user.cookiePreview}</p>
+                        <p className="text-sm font-medium text-black dark:text-white truncate">{user.name || "Unknown Name"}</p>
+                        <p className="text-xs text-gray-400 truncate">{user.email || "No Email"}</p>
                       </div>
                       {selectedUserId === user._id && (
                         <div className="flex-shrink-0">
@@ -205,8 +242,9 @@ const CookieSettings = () => {
                         </div>
                       )}
                     </label>
-                  ))}
+                  )))}
                 </div>
+                </>
               )}
 
               {exMsg && (
@@ -220,7 +258,7 @@ const CookieSettings = () => {
                 disabled={!selectedUserId || exLoading}
                 className="flex w-full items-center justify-center gap-2 rounded bg-primary py-3 font-medium text-white hover:bg-opacity-90 disabled:opacity-40"
               >
-                {exLoading ? "Saving..." : "Set as Facebook Extraction Account"}
+                {exLoading ? "Saving..." : `Set as ${exPlatform} Extraction Account`}
               </button>
             </div>
           </div>
@@ -231,7 +269,7 @@ const CookieSettings = () => {
               <h3 className="font-semibold text-black dark:text-white">Active Extraction Account</h3>
             </div>
             <div className="p-6 flex flex-col gap-3">
-              {["facebook"].map((plat) => {
+              {["facebook", "instagram"].map((plat) => {
                 const acc = getExtractionForPlatform(plat);
                 return (
                   <div key={plat} className="flex items-center justify-between rounded-lg border border-stroke dark:border-strokedark p-3">
@@ -242,7 +280,7 @@ const CookieSettings = () => {
                         className="h-7 w-7"
                       />
                       <div>
-                        <p className="text-sm font-medium capitalize text-black dark:text-white">Facebook</p>
+                        <p className="text-sm font-medium capitalize text-black dark:text-white">{plat}</p>
                         {acc?.email && <p className="text-xs text-gray-400">{acc.email}</p>}
                       </div>
                     </div>
@@ -287,6 +325,7 @@ const CookieSettings = () => {
                     className="w-full rounded border-[1.5px] border-stroke bg-transparent px-4 py-3 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                   >
                     <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
                   </select>
                 </div>
                 <div className="mb-4">
