@@ -10,6 +10,13 @@ const JobsListV2 = () => {
   // Selection
   const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPausingAll, setIsPausingAll] = useState(false);
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,9 +31,30 @@ const JobsListV2 = () => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/v4/admin/v2/jobs");
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(searchQuery && { searchQuery }),
+        ...(platformFilter !== "All" && { platformFilter }),
+        ...(statusFilter !== "All" && { statusFilter }),
+        ...(errorFilter !== "All" && { errorFilter }),
+        ...(vipFilter !== "All" && { vipFilter }),
+        ...(startDate && { startDate }),
+        ...(endDate && { endDate })
+      });
+
+      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/v4/admin/v2/jobs?" + queryParams.toString());
       const data = await res.json();
-      setJobs(Array.isArray(data) ? data : []);
+      
+      if (data && Array.isArray(data.jobs)) {
+        setJobs(data.jobs);
+        setTotalCount(data.totalCount || 0);
+        setTotalPages(data.totalPages || 1);
+      } else if (Array.isArray(data)) {
+        setJobs(data);
+      } else {
+        setJobs([]);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -38,7 +66,12 @@ const JobsListV2 = () => {
     fetchJobs();
     const interval = setInterval(fetchJobs, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [page, limit, searchQuery, platformFilter, statusFilter, errorFilter, vipFilter, startDate, endDate]);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, platformFilter, statusFilter, errorFilter, vipFilter, startDate, endDate]);
 
   const activeFiltersCount = [platformFilter !== "All", statusFilter !== "All", errorFilter !== "All", vipFilter !== "All", startDate !== "", endDate !== ""].filter(Boolean).length;
 
@@ -48,46 +81,7 @@ const JobsListV2 = () => {
     );
   };
 
-  const getFilteredJobs = () => {
-    return jobs.filter((job) => {
-      const normalizeLink = (link: string) => 
-        (link || "").toLowerCase().replace(/^(https?:\/\/)?(www\.|m\.)?/g, "");
-
-      const normalizedQuery = normalizeLink(searchQuery);
-
-      const matchesSearch =
-        !searchQuery ||
-        normalizeLink(job.targetLink).includes(normalizedQuery) ||
-        (job.target_id || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (job.mediaId || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (job.userPk || "").toLowerCase().includes(searchQuery.toLowerCase());
-  
-      const matchesPlatform = platformFilter === "All" || job.platform === platformFilter.toLowerCase();
-      const matchesStatus = statusFilter === "All" || job.status?.toLowerCase() === statusFilter.toLowerCase();
-      const matchesError = errorFilter === "All" || 
-        (errorFilter === "Errors" && job.resolutionStatus === "fallback") || 
-        (errorFilter === "No Errors" && job.resolutionStatus !== "fallback");
-      const matchesVip =
-        vipFilter === "All" ||
-        (vipFilter === "VIP" && job.isVip) ||
-        (vipFilter === "Normal" && !job.isVip);
-
-      let matchesDate = true;
-      if (job.createdAt && (startDate || endDate)) {
-        const jobDate = new Date(job.createdAt);
-        if (startDate) matchesDate = matchesDate && jobDate >= new Date(startDate);
-        if (endDate) {
-            const end = new Date(endDate);
-            end.setHours(23, 59, 59, 999);
-            matchesDate = matchesDate && jobDate <= end;
-        }
-      }
-  
-      return matchesSearch && matchesPlatform && matchesStatus && matchesError && matchesVip && matchesDate;
-    });
-  };
-
-  const filteredJobs = getFilteredJobs();
+  const filteredJobs = jobs;
 
   const toggleAll = () => {
     if (selectedJobs.length === filteredJobs.length && filteredJobs.length > 0) {
@@ -112,6 +106,21 @@ const JobsListV2 = () => {
       console.error(err);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handlePauseAll = async () => {
+    if (!confirm("Are you sure you want to pause ALL active jobs in the database?")) return;
+    setIsPausingAll(true);
+    try {
+      await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/v4/admin/v2/jobs/pause-all", {
+        method: "POST",
+      });
+      fetchJobs();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsPausingAll(false);
     }
   };
 
@@ -173,6 +182,13 @@ const JobsListV2 = () => {
           </div>
           
           <div className="flex items-center gap-4">
+              <button
+                onClick={handlePauseAll}
+                disabled={isPausingAll}
+                className="rounded bg-warning px-4 py-2 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                {isPausingAll ? "Pausing..." : "Pause All Active Jobs"}
+              </button>
              {selectedJobs.length > 0 && (
                 <button
                   onClick={handleDeleteSelected}
@@ -449,6 +465,40 @@ const JobsListV2 = () => {
             ));
           })()}
         </div>
+
+        {/* Pagination UI */}
+        {!loading && jobs.length > 0 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-stroke dark:border-strokedark">
+            <div className="text-sm text-gray-500 mb-4 sm:mb-0">
+              Showing {(page - 1) * limit + 1} to {Math.min(page * limit, totalCount)} of {totalCount} entries
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                className="px-4 py-2 rounded-md border border-stroke text-sm font-medium hover:bg-gray-2 disabled:opacity-50 disabled:cursor-not-allowed dark:border-strokedark dark:hover:bg-meta-4"
+              >
+                Previous
+              </button>
+              
+              <div className="flex items-center space-x-1">
+                <span className="text-sm font-medium px-4 py-2 bg-primary text-white rounded-md">
+                  {page}
+                </span>
+                <span className="text-sm text-gray-500 px-2">of {totalPages}</span>
+              </div>
+
+              <button
+                disabled={page >= totalPages}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                className="px-4 py-2 rounded-md border border-stroke text-sm font-medium hover:bg-gray-2 disabled:opacity-50 disabled:cursor-not-allowed dark:border-strokedark dark:hover:bg-meta-4"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
     </DefaultLayout>
   );
