@@ -20,6 +20,8 @@ const UsersList = () => {
   const [ShowModal, setShowModal] = useState(false);
   const [BanShowModal, setBanShowModal] = useState(false);
   const [BalanceShowModal, setBalanceShowModal] = useState(false);
+  const [RewardShowModal, setRewardShowModal] = useState(false);
+  const [RewardPoints, setRewardPoints] = useState<number | null>(null);
   const [UserId, setUserId] = useState("");
   const [loading, setloading] = useState(false);
   const [refrech, setrefrech] = useState(false);
@@ -115,6 +117,32 @@ const UsersList = () => {
       }
     } else {
       toast.error("Please enter a valid balance");
+    }
+  }
+
+  async function UpdateUserRewardPoints(id: string) {
+    if (RewardPoints !== null && RewardPoints >= 0) {
+      try {
+        setloading(true);
+        const res = await API.put(
+          `/api/v3/users/firestore/updateReward/${id}`,
+          { dailyRewards: RewardPoints },
+          { headers },
+        );
+        if (res.status === 200) {
+          toast.success("User reward points updated successfully");
+          setRewardShowModal(false);
+          setRewardPoints(null);
+          setrefrech(!refrech);
+        }
+      } catch (error) {
+        console.error("Failed to update reward points", error);
+        toast.error("Failed to update reward points");
+      } finally {
+        setloading(false);
+      }
+    } else {
+      toast.error("Please enter a valid points value");
     }
   }
 
@@ -387,15 +415,28 @@ const UsersList = () => {
                       </button>
 
                       {!user.banned && (
-                        <button
-                          className="flex w-full justify-center rounded bg-primary px-3 py-1 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
-                          onClick={() => {
-                            setBalanceShowModal(true);
-                            setUserId(user.id);
-                          }}
-                        >
-                          Add balance
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            className="rounded bg-primary px-2.5 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50 whitespace-nowrap"
+                            onClick={() => {
+                              setBalanceShowModal(true);
+                              setUserId(user.id);
+                            }}
+                          >
+                            + Balance
+                          </button>
+                          <button
+                            className="rounded bg-meta-3 px-2.5 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50 whitespace-nowrap"
+                            title="تحديد عدد النقاط التي تنزل للمستخدم بعد انتهاء وقت الانتظار"
+                            onClick={() => {
+                              setRewardShowModal(true);
+                              setUserId(user.id);
+                              setRewardPoints(user.dailyRewards ?? 50);
+                            }}
+                          >
+                            🎁 Points ({user.dailyRewards ?? 50})
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -484,6 +525,46 @@ const UsersList = () => {
                   onClick={() => setBalanceShowModal(false)}
                 >
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {RewardShowModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-700 bg-opacity-50">
+            <div className="rounded-lg bg-white p-6 text-center shadow-lg dark:bg-boxdark max-w-sm w-full mx-4">
+              <p className="mb-2 text-lg font-semibold text-black dark:text-white">
+                تحديد نقاط المكافأة (Reward Points)
+              </p>
+              <p className="mb-4 text-xs text-gray-500">
+                حدد عدد النقاط التي تنزل لهذا المستخدم بعد انتهاء وقت الانتظار عندما ينفذ رصيده
+              </p>
+
+              <input
+                type="number"
+                value={RewardPoints ?? ""}
+                onChange={(e) => setRewardPoints(Number(e.target.value))}
+                placeholder="50"
+                className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                min={0}
+                onWheel={(e) => e.currentTarget.blur()}
+              />
+
+              <div className="mt-4 flex w-full items-center space-x-4">
+                <button
+                  disabled={loading}
+                  className="flex w-full justify-center rounded bg-meta-3 p-3 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                  onClick={() => UpdateUserRewardPoints(UserId)}
+                >
+                  حفظ
+                </button>
+                <button
+                  disabled={loading}
+                  className="flex w-full justify-center rounded bg-slate-400 p-3 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                  onClick={() => setRewardShowModal(false)}
+                >
+                  إلغاء
                 </button>
               </div>
             </div>

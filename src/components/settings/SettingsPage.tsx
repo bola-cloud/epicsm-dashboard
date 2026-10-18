@@ -14,6 +14,8 @@ export interface Settings {
   mimicScroll: boolean;
   rt: number;
   rrt: number;
+  globalDailyReward?: number;
+  rewardDelayMinutes?: number;
 }
 
 const headers = {
@@ -22,7 +24,7 @@ const headers = {
 };
 
 function SettingsPage() {
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<Settings>({
     executionMethod: "",
     executionMethods: [""],
     reportErrors: false,
@@ -30,6 +32,8 @@ function SettingsPage() {
     mimicScroll: false,
     rt: 0,
     rrt: 0,
+    globalDailyReward: 50,
+    rewardDelayMinutes: 30,
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -39,7 +43,11 @@ function SettingsPage() {
       const res = await API.get<Settings>("/api/v3/settings", {
         headers,
       });
-      setSettings(res.data);
+      setSettings({
+        ...res.data,
+        globalDailyReward: res.data.globalDailyReward ?? 50,
+        rewardDelayMinutes: res.data.rewardDelayMinutes ?? 30,
+      });
     } catch (error) {
       const errorMessage =
         error instanceof AxiosError
@@ -169,6 +177,62 @@ function SettingsPage() {
               }
               className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-meta-4/20 space-y-4">
+            <h3 className="font-semibold text-black dark:text-white text-base flex items-center gap-2">
+              🎁 إعدادات المكافآت الموحدة (Global Points & Reward System)
+            </h3>
+            
+            <div>
+              <label
+                htmlFor="globalDailyReward"
+                className="text-gray-700 dark:text-gray-200 mb-1 block text-sm font-medium"
+              >
+                نقاط المكافأة الموحدة لجميع المستخدمين (Global Reward Points)
+              </label>
+              <input
+                type="number"
+                id="globalDailyReward"
+                min="0"
+                value={settings.globalDailyReward ?? 50}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    globalDailyReward: parseInt(e.target.value) || 0,
+                  })
+                }
+                className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-boxdark dark:border-strokedark"
+              />
+              <p className="text-gray-500 text-xs mt-1">
+                هذا الرقم يحدد عدد النقاط الموحدة التي يحصل عليها أي مستخدم عند استلام المكافأة / بعد تصفير نقاطه (يطبق فورياً على كل المستخدمين).
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="rewardDelayMinutes"
+                className="text-gray-700 dark:text-gray-200 mb-1 block text-sm font-medium"
+              >
+                وقت الانتظار قبل نزول النقاط بالدقائق (Reward Wait Time)
+              </label>
+              <input
+                type="number"
+                id="rewardDelayMinutes"
+                min="1"
+                value={settings.rewardDelayMinutes ?? 30}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    rewardDelayMinutes: parseInt(e.target.value) || 30,
+                  })
+                }
+                className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-boxdark dark:border-strokedark"
+              />
+              <p className="text-gray-500 text-xs mt-1">
+                المدة بالدقائق التي ينتظرها المستخدم بعد طلب المكافأة حتى تنزل النقاط في رصيده (افتراضياً 30 دقيقة).
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center justify-between">

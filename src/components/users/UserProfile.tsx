@@ -253,17 +253,17 @@ function UserProfile() {
               </tr>
               <tr>
                 <td className="px-4 py-4 font-medium text-black dark:text-white">
-                  Daily Reward
+                  نقاط المكافأة (Refill / Daily Reward)
                 </td>
-                <td className="px-4 py-4 text-black dark:text-white">
-                  {User?.dailyRewards}
+                <td className="px-4 py-4 text-black dark:text-white font-semibold">
+                  {User?.dailyRewards ?? 50}
                 </td>
                 <td className="px-4 py-4">
                   <button
-                    className="rounded bg-primary px-3 py-1 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
+                    className="rounded bg-meta-3 px-3 py-1 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
                     onClick={() => openModal("dailyReward")}
                   >
-                    Update daily reward
+                    تعديل نقاط المكافأة
                   </button>
                 </td>
               </tr>
