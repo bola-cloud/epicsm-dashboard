@@ -17,9 +17,6 @@ const headers = {
 function UserProfile() {
   const { id } = useParams();
   const [User, setUser] = useState<User | undefined>();
-  const [ShowModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState<"dailyReward">("dailyReward");
-  const [dailyRewards, setdailyRewards] = useState<number | null>(null);
   const [loading, setloading] = useState(false);
   const [refrech, setrefrech] = useState(false);
   const [isVipToggling, setIsVipToggling] = useState(false);
@@ -58,31 +55,7 @@ function UserProfile() {
       )
     : null;
 
-  async function UpdateDailyReward() {
-    if (dailyRewards) {
-      try {
-        setloading(true);
-        const res = await API.put(
-          `/api/v3/users/firestore/updateReward/${User?.id}`,
-          { dailyRewards },
-          { headers },
-        );
-        if (res.status === 200) {
-          toast.success(`Daily Reward updated`);
-          setShowModal(false);
-          setdailyRewards(null);
-          setrefrech(!refrech);
-        }
-      } catch (error) {
-        console.error("Failed to update daily Reward", error);
-        toast.error("Failed to update daily Reward");
-      } finally {
-        setloading(false);
-      }
-    } else {
-      toast.error("Please enter a valid value");
-    }
-  }
+
 
   async function toggleVipStatus(newStatus: boolean) {
     if (isVipToggling) return;
@@ -108,10 +81,7 @@ function UserProfile() {
     }
   }
 
-  const openModal = (type: "dailyReward") => {
-    setModalType(type);
-    setShowModal(true);
-  };
+
 
   const handleVipToggleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newStatus = e.target.checked;
@@ -258,13 +228,8 @@ function UserProfile() {
                 <td className="px-4 py-4 text-black dark:text-white font-semibold">
                   {User?.dailyRewards ?? 50}
                 </td>
-                <td className="px-4 py-4">
-                  <button
-                    className="rounded bg-meta-3 px-3 py-1 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-                    onClick={() => openModal("dailyReward")}
-                  >
-                    تعديل نقاط المكافأة
-                  </button>
+                <td className="px-4 py-4 text-xs text-gray-500">
+                  (موحدة لجميع المستخدمين من الإعدادات)
                 </td>
               </tr>
               <tr>
@@ -337,41 +302,7 @@ function UserProfile() {
         </div>
       </div>
 
-      {ShowModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-700 bg-opacity-50">
-          <div className="rounded-lg bg-white p-6 text-center shadow-lg">
-            <p className="mb-4 text-lg font-semibold">Update daily reward</p>
 
-            <input
-              type="number"
-              name="maxCount"
-              value={dailyRewards || ""}
-              onChange={(e) => setdailyRewards(Number(e.target.value))}
-              placeholder="0 $"
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-              min={0}
-              onWheel={(e) => e.currentTarget.blur()}
-            />
-
-            <div className="mt-4 flex w-full items-center space-x-4">
-              <button
-                disabled={loading}
-                className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
-                onClick={UpdateDailyReward}
-              >
-                Update
-              </button>
-              <button
-                disabled={loading}
-                className="flex w-full justify-center rounded bg-slate-400 p-3 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
