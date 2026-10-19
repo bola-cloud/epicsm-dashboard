@@ -209,7 +209,7 @@ function JobDetails() {
                     Job?.status === "completed" ||
                     Job?.status === "مكتمل") ? (
                     <span className="inline-flex rounded-full bg-meta-5/10 px-3 py-0.5 text-sm font-semibold text-meta-5 dark:bg-meta-5/20">
-                      مكتمل
+                      Completed
                     </span>
                   ) : (
                     Job?.status
@@ -260,7 +260,7 @@ function JobDetails() {
                       Job?.status === "Completed" ||
                       Job?.status === "completed" ||
                       Job?.status === "مكتمل") ? (
-                      <span className="text-meta-5 font-semibold">No (مكتمل)</span>
+                      <span className="text-meta-5 font-semibold">No (Completed)</span>
                     ) : (Job as any)?.isV2 ? (
                       Job?.status === "Active" ? "Yes" : "No"
                     ) : Job?.isLive ? (

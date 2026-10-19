@@ -241,7 +241,7 @@ const JobsListV2 = () => {
                 >
                   <option value="All">All Statuses</option>
                   <option value="Active">Active</option>
-                  <option value="Completed">مكتمل (Completed)</option>
+                  <option value="Completed">Completed</option>
                   <option value="Paused">Paused</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
@@ -402,7 +402,7 @@ const JobsListV2 = () => {
                           : "bg-danger text-danger"
                       }`}
                     >
-                      {isCompleted ? "مكتمل" : (job.status || "Active")}
+                      {isCompleted ? "Completed" : (job.status || "Active")}
                     </p>
                     {job.resolutionStatus === 'fallback' && (
                       <div title={job.resolutionError || "Failed to resolve ID. Using Fallback mode."} className="text-danger flex items-center justify-center cursor-help">
@@ -448,7 +448,7 @@ const JobsListV2 = () => {
                       </svg>
                     </a>
                     {isCompleted ? (
-                      <span className="text-meta-5 flex items-center justify-center" title="مكتمل (Completed)">
+                      <span className="text-meta-5 flex items-center justify-center" title="Completed">
                         <svg className="fill-current w-4.5 h-4.5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                         </svg>

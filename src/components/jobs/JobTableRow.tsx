@@ -58,7 +58,7 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
               : "bg-danger text-danger"
           }`}
         >
-          {isCompleted ? "مكتمل" : job.status}
+          {isCompleted ? "Completed" : job.status}
         </p>
         {job.isVip && (
           <span className="inline-flex items-center rounded-full bg-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-800">

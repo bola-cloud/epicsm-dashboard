@@ -67,7 +67,7 @@ const JobFilters: React.FC<FilterProps> = ({
             options={[
               { value: "", label: "All" },
               { value: "Active", label: "Active" },
-              { value: "Completed", label: "مكتمل (Completed)" },
+              { value: "Completed", label: "Completed" },
               { value: "Deleted", label: "Deleted" },
             ]}
           />
