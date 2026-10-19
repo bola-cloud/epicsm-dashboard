@@ -139,24 +139,24 @@ const ExecutionMethodsManager: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto space-y-8 p-8">
-      <div className="flex flex-col items-center justify-between sm:flex-row">
-        <h2 className="text-gray-900 text-2xl font-semibold">
+    <div className="mx-auto space-y-8 p-4 md:p-6 2xl:p-10">
+      <div className="flex flex-col items-center justify-between sm:flex-row gap-4">
+        <h2 className="text-2xl font-bold text-black dark:text-white">
           Execution Methods
         </h2>
-        <form onSubmit={handleAdd} className="flex gap-3">
+        <form onSubmit={handleAdd} className="flex gap-3 w-full sm:w-auto">
           <input
             type="text"
             value={newMethod}
             onChange={(e) => setNewMethod(e.target.value)}
             placeholder="Enter new method name"
-            className="border-gray-300 w-64 rounded-lg border px-4 py-2 text-sm shadow-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full sm:w-64 rounded-lg border border-stroke bg-transparent px-4 py-2 text-sm text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !newMethod.trim()}
-            className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex shrink-0 items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-md transition hover:bg-opacity-90 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             Add Method
           </button>
@@ -167,19 +167,19 @@ const ExecutionMethodsManager: React.FC = () => {
         <div
           className={`mb-4 rounded-lg p-4 font-medium ${
             message.type === "error"
-              ? "border border-[#FF0000] bg-[#ff00002c] text-[#FF0000]"
-              : "border border-green-200 bg-green-50 text-green-700"
+              ? "border border-danger/20 bg-danger/10 text-danger"
+              : "border border-success/20 bg-success/10 text-success"
           }`}
         >
           {message.text}
         </div>
       )}
 
-      <div className="divide-y divide-black/20 rounded-lg bg-white shadow">
+      <div className="divide-y divide-stroke rounded-xl border border-stroke bg-white shadow-default dark:divide-strokedark dark:border-strokedark dark:bg-boxdark">
         {methods.map((method) => (
           <div
             key={method._id}
-            className="hover:bg-gray-50 flex items-center justify-between p-4 transition-colors"
+            className="hover:bg-gray-50 dark:hover:bg-meta-4/20 flex items-center justify-between p-4 transition-colors"
           >
             {editingMethod?.id === method._id ? (
               <input
@@ -191,11 +191,11 @@ const ExecutionMethodsManager: React.FC = () => {
                     name: e.target.value,
                   })
                 }
-                className="border-gray-300 w-full rounded-lg border px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-sm text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={loading}
               />
             ) : (
-              <span className="text-gray-900 text-sm font-medium">
+              <span className="text-sm font-medium text-black dark:text-white">
                 {method.name}
               </span>
             )}

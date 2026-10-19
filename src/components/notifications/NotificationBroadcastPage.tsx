@@ -18,11 +18,6 @@ interface BroadcastResult {
   sentAt: string;
 }
 
-const headers = {
-  Authorization: `JWT ${getJwtFromLocalStorage()}`,
-  "Content-Type": "application/json",
-};
-
 export default function NotificationBroadcastPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -33,10 +28,17 @@ export default function NotificationBroadcastPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [lastResult, setLastResult] = useState<BroadcastResult | null>(null);
 
+  const getAuthHeaders = () => ({
+    Authorization: `JWT ${getJwtFromLocalStorage() || ""}`,
+    "Content-Type": "application/json",
+  });
+
   const fetchStats = async () => {
     try {
       setStatsLoading(true);
-      const res = await API.get("/api/v3/notifications/stats", { headers });
+      const res = await API.get("/api/v3/notifications/stats", {
+        headers: getAuthHeaders(),
+      });
       if (res.data) {
         setStats(res.data);
       }
@@ -68,7 +70,7 @@ export default function NotificationBroadcastPage() {
           body: body.trim(),
           imageUrl: imageUrl.trim() || undefined,
         },
-        { headers }
+        { headers: getAuthHeaders() }
       );
 
       if (res.status === 200 && res.data.success) {
@@ -98,7 +100,7 @@ export default function NotificationBroadcastPage() {
           <h2 className="text-title-md2 font-bold text-black dark:text-white flex items-center gap-2">
             📢 إرسال إشعار عام لجميع المستخدمين (Broadcast Notification)
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-bodydark1 mt-1">
             أرسل إشعارات Push Notifications فورية إلى جميع الأجهزة والمستخدمين المسجلين في التطبيق.
           </p>
         </div>
@@ -114,7 +116,7 @@ export default function NotificationBroadcastPage() {
               </svg>
             </div>
             <div>
-              <span className="text-xs font-medium text-gray-500">إجمالي المستخدمين في النظام</span>
+              <span className="text-xs font-medium text-gray-500 dark:text-bodydark1">إجمالي المستخدمين في النظام</span>
               <h4 className="text-title-sm font-bold text-black dark:text-white">
                 {statsLoading ? "..." : (stats?.totalUsers?.toLocaleString() || "0")}
               </h4>
@@ -130,7 +132,7 @@ export default function NotificationBroadcastPage() {
               </svg>
             </div>
             <div>
-              <span className="text-xs font-medium text-gray-500">أجهزة فعالة تستقبل الإشعارات (FCM)</span>
+              <span className="text-xs font-medium text-gray-500 dark:text-bodydark1">أجهزة فعالة تستقبل الإشعارات (FCM)</span>
               <h4 className="text-title-sm font-bold text-success">
                 {statsLoading ? "..." : (stats?.usersWithFcmCount?.toLocaleString() || "0")}
               </h4>
@@ -146,7 +148,7 @@ export default function NotificationBroadcastPage() {
               </svg>
             </div>
             <div>
-              <span className="text-xs font-medium text-gray-500">طريقة البث الإضافية</span>
+              <span className="text-xs font-medium text-gray-500 dark:text-bodydark1">طريقة البث الإضافية</span>
               <h4 className="text-title-sm font-bold text-black dark:text-white">
                 FCM Topic + Live Sockets
               </h4>
@@ -277,6 +279,7 @@ export default function NotificationBroadcastPage() {
 
                 {imageUrl && (
                   <div className="mt-2.5 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 max-h-36">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imageUrl}
                       alt="Banner Preview"
@@ -326,7 +329,7 @@ export default function NotificationBroadcastPage() {
               تأكيد إرسال الإشعار لجميع المستخدمين
             </h3>
 
-            <p className="mb-4 text-sm text-gray-500">
+            <p className="mb-4 text-sm text-gray-600 dark:text-bodydark1">
               أنت على وشك إرسال هذا الإشعار إلى ما يقارب{" "}
               <strong className="text-primary font-bold">
                 {stats?.usersWithFcmCount?.toLocaleString() || "جميع"}
@@ -334,7 +337,7 @@ export default function NotificationBroadcastPage() {
               مستخدم مسجل في النظام. هل أنت متأكد من المتابعة؟
             </p>
 
-            <div className="rounded-lg bg-gray-50 p-3 mb-5 text-right text-xs text-gray-700 dark:bg-meta-4/20 dark:text-gray-300">
+            <div className="rounded-lg bg-gray-50 p-3 mb-5 text-right text-xs text-gray-700 dark:bg-meta-4/20 dark:text-bodydark1">
               <p><strong>العنوان:</strong> {title}</p>
               <p className="truncate"><strong>الرسالة:</strong> {body}</p>
             </div>

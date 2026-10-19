@@ -103,16 +103,16 @@ function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto p-6">
-      <div className="rounded-lg bg-white p-6 shadow-md">
-        <h1 className="mb-6 text-2xl font-bold">Settings</h1>
+    <div className="mx-auto p-4 md:p-6 2xl:p-10">
+      <div className="rounded-xl border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <h1 className="mb-6 text-2xl font-bold text-black dark:text-white">Settings</h1>
 
         {message.text && (
           <div
             className={`mb-4 rounded-lg p-4 font-semibold ${
               message.type === "error"
-                ? "border border-[#FF0000] bg-[#ff00002c] text-[#FF0000]"
-                : "border border-green-200 bg-green-50 text-green-700"
+                ? "border border-danger/20 bg-danger/10 text-danger"
+                : "border border-success/20 bg-success/10 text-success"
             }`}
           >
             {message.text}
@@ -123,7 +123,7 @@ function SettingsPage() {
           <div>
             <label
               htmlFor="executionMethod"
-              className="text-gray-700 mb-1 block text-sm font-medium"
+              className="mb-1.5 block text-sm font-medium text-black dark:text-white"
             >
               Execution Method
             </label>
@@ -133,11 +133,11 @@ function SettingsPage() {
               onChange={(e) =>
                 setSettings({ ...settings, executionMethod: e.target.value })
               }
-              className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
             >
               {settings?.executionMethods &&
                 settings?.executionMethods.map((method) => (
-                  <option key={method} value={method}>
+                  <option key={method} value={method} className="dark:bg-boxdark">
                     {method.charAt(0).toUpperCase() + method.slice(1)}
                   </option>
                 ))}
@@ -147,7 +147,7 @@ function SettingsPage() {
           <div>
             <label
               htmlFor="rt"
-              className="text-gray-700 mb-1 block text-sm font-medium"
+              className="mb-1.5 block text-sm font-medium text-black dark:text-white"
             >
               Range Time (milliseconds)
             </label>
@@ -159,14 +159,14 @@ function SettingsPage() {
               onChange={(e) =>
                 setSettings({ ...settings, rt: parseInt(e.target.value) || 0 })
               }
-              className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
             />
           </div>
 
           <div>
             <label
               htmlFor="rrt"
-              className="text-gray-700 mb-1 block text-sm font-medium"
+              className="mb-1.5 block text-sm font-medium text-black dark:text-white"
             >
               Random Range Time (milliseconds)
             </label>
@@ -178,19 +178,19 @@ function SettingsPage() {
               onChange={(e) =>
                 setSettings({ ...settings, rrt: parseInt(e.target.value) || 0 })
               }
-              className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
             />
           </div>
 
-          <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-meta-4/20 space-y-4">
-            <h3 className="font-semibold text-black dark:text-white text-base flex items-center gap-2">
-              🎁 إعدادات المكافآت الموحدة (Global Points & Reward System)
+          <div className="rounded-xl border border-stroke bg-gray-50/70 p-6 shadow-sm dark:border-strokedark dark:bg-meta-4/20 space-y-5">
+            <h3 className="font-bold text-black dark:text-white text-base flex items-center gap-2 border-b border-stroke pb-3 dark:border-strokedark">
+              🎁 إعدادات المكافآت الموحدة ونظام النقاط (Global Points & Reward System)
             </h3>
             
             <div>
               <label
                 htmlFor="globalDailyReward"
-                className="text-gray-700 dark:text-gray-200 mb-1 block text-sm font-medium"
+                className="text-black dark:text-white mb-2 block text-sm font-semibold"
               >
                 نقاط المكافأة الموحدة لجميع المستخدمين (Global Reward Points)
               </label>
@@ -205,9 +205,9 @@ function SettingsPage() {
                     globalDailyReward: parseInt(e.target.value) || 0,
                   })
                 }
-                className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-boxdark dark:border-strokedark"
+                className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary font-medium"
               />
-              <p className="text-gray-500 text-xs mt-1">
+              <p className="text-gray-500 dark:text-bodydark1 text-xs mt-1.5 leading-relaxed font-normal">
                 هذا الرقم يحدد عدد النقاط الموحدة التي يحصل عليها أي مستخدم عند استلام المكافأة / بعد تصفير نقاطه، وكذلك الرصيد المبدئي لأي مستخدم جديد يسجل لأول مرة (يطبق فورياً على كل المستخدمين).
               </p>
             </div>
@@ -215,7 +215,7 @@ function SettingsPage() {
             <div>
               <label
                 htmlFor="rewardDelayMinutes"
-                className="text-gray-700 dark:text-gray-200 mb-1 block text-sm font-medium"
+                className="text-black dark:text-white mb-2 block text-sm font-semibold"
               >
                 وقت الانتظار قبل نزول النقاط بالدقائق (Reward Wait Time)
               </label>
@@ -230,9 +230,9 @@ function SettingsPage() {
                     rewardDelayMinutes: parseInt(e.target.value) || 30,
                   })
                 }
-                className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-boxdark dark:border-strokedark"
+                className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary font-medium"
               />
-              <p className="text-gray-500 text-xs mt-1">
+              <p className="text-gray-500 dark:text-bodydark1 text-xs mt-1.5 leading-relaxed font-normal">
                 المدة بالدقائق التي ينتظرها المستخدم بعد طلب المكافأة حتى تنزل النقاط في رصيده (افتراضياً 30 دقيقة).
               </p>
             </div>
@@ -240,7 +240,7 @@ function SettingsPage() {
             <div>
               <label
                 htmlFor="pointsPerDollar"
-                className="text-gray-700 dark:text-gray-200 mb-1 block text-sm font-medium"
+                className="text-black dark:text-white mb-2 block text-sm font-semibold"
               >
                 معدل تحويل وفك الدولار إلى نقاط (Points per 1 Dollar)
               </label>
@@ -255,9 +255,9 @@ function SettingsPage() {
                     pointsPerDollar: parseInt(e.target.value) || 1,
                   })
                 }
-                className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-boxdark dark:border-strokedark"
+                className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary font-medium"
               />
-              <p className="text-gray-500 text-xs mt-1">
+              <p className="text-gray-500 dark:text-bodydark1 text-xs mt-1.5 leading-relaxed font-normal">
                 يحدد كم نقطة يحصل عليها المستخدم مقابل كل 1 دولار عند فك أو تحويل رصيد الدولار إلى نقاط (مثلاً: إذا تم ضبطه على 100، فكل 1$ = 100 نقطة).
               </p>
             </div>
@@ -266,7 +266,7 @@ function SettingsPage() {
           <div className="flex items-center justify-between">
             <label
               htmlFor="reportErrors"
-              className="text-gray-700 text-sm font-medium"
+              className="text-sm font-medium text-black dark:text-white"
             >
               Report Errors
             </label>
@@ -280,14 +280,14 @@ function SettingsPage() {
                 }
                 className="peer sr-only"
               />
-              <div className="peer h-6 w-11 rounded-full bg-[#dbdbdb] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-[#808080] after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+              <div className="peer h-6 w-11 rounded-full bg-[#dbdbdb] dark:bg-meta-4 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-[#808080] after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
             </label>
           </div>
 
           <div className="flex items-center justify-between">
             <label
               htmlFor="reportHtml"
-              className="text-gray-700 text-sm font-medium"
+              className="text-sm font-medium text-black dark:text-white"
             >
               Report HTML
             </label>
@@ -301,14 +301,14 @@ function SettingsPage() {
                 }
                 className="peer sr-only"
               />
-              <div className="peer h-6 w-11 rounded-full bg-[#dbdbdb] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-[#808080] after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+              <div className="peer h-6 w-11 rounded-full bg-[#dbdbdb] dark:bg-meta-4 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-[#808080] after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
             </label>
           </div>
 
           <div className="flex items-center justify-between">
             <label
               htmlFor="mimicScroll"
-              className="text-gray-700 text-sm font-medium"
+              className="text-sm font-medium text-black dark:text-white"
             >
               Mimic Scroll
             </label>
@@ -322,14 +322,14 @@ function SettingsPage() {
                 }
                 className="peer sr-only"
               />
-              <div className="peer h-6 w-11 rounded-full bg-[#dbdbdb] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-[#808080] after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+              <div className="peer h-6 w-11 rounded-full bg-[#dbdbdb] dark:bg-meta-4 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-[#808080] after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
             </label>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full rounded-md border border-transparent bg-blue-600 px-4 py-2 text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            className={`w-full rounded-lg bg-primary py-3 px-6 font-medium text-white transition hover:bg-opacity-90 shadow-md ${
               loading ? "cursor-not-allowed opacity-50" : ""
             }`}
           >
