@@ -241,6 +241,7 @@ const JobsListV2 = () => {
                 >
                   <option value="All">All Statuses</option>
                   <option value="Active">Active</option>
+                  <option value="Completed">مكتمل (Completed)</option>
                   <option value="Paused">Paused</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
@@ -349,101 +350,121 @@ const JobsListV2 = () => {
             if (loading) return <div className="p-5 text-center">Loading...</div>;
             if (filteredJobs.length === 0) return <div className="p-5 text-center">No V2 jobs match your filters.</div>;
 
-            return filteredJobs.map((job, key) => (
-              <div
-                className={`grid grid-cols-4 sm:grid-cols-[auto_repeat(7,1fr)] items-center hover:bg-slate-100/50 ${
-                  key === filteredJobs.length - 1 ? "" : "border-b border-stroke dark:border-strokedark"
-                }`}
-                key={job._id || key}
-              >
-                <div className="p-2.5 xl:p-5 pr-0 flex items-center justify-center w-10">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 cursor-pointer"
-                    checked={selectedJobs.includes(job._id)}
-                    onChange={() => toggleSelection(job._id)}
-                  />
-                </div>
-                <div className="flex items-center p-2.5 xl:p-5">
-                  <a href={job.targetLink} target="_blank" rel="noreferrer" className="text-primary truncate w-24 sm:w-40 hover:underline" title={job.targetLink}>
-                    {job.targetLink}
-                  </a>
-                </div>
+            return filteredJobs.map((job, key) => {
+              const isCompleted =
+                (typeof job.maxCount === "number" &&
+                  typeof job.likeCount === "number" &&
+                  job.maxCount > 0 &&
+                  job.likeCount >= job.maxCount) ||
+                job.status === "Completed" ||
+                job.status === "completed" ||
+                job.status === "مكتمل";
 
-                <div className="flex items-center justify-center p-2.5 xl:p-5">
-                  <div className="flex items-center gap-2">
-                    <img src="/images/brand/brand-05.svg" alt="brand" className="w-6 h-6 hidden sm:block" />
-                    <p className="text-black dark:text-white capitalize">{job.platform}</p>
+              return (
+                <div
+                  className={`grid grid-cols-4 sm:grid-cols-[auto_repeat(7,1fr)] items-center hover:bg-slate-100/50 ${
+                    key === filteredJobs.length - 1 ? "" : "border-b border-stroke dark:border-strokedark"
+                  }`}
+                  key={job._id || key}
+                >
+                  <div className="p-2.5 xl:p-5 pr-0 flex items-center justify-center w-10">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 cursor-pointer"
+                      checked={selectedJobs.includes(job._id)}
+                      onChange={() => toggleSelection(job._id)}
+                    />
                   </div>
-                </div>
+                  <div className="flex items-center p-2.5 xl:p-5">
+                    <a href={job.targetLink} target="_blank" rel="noreferrer" className="text-primary truncate w-24 sm:w-40 hover:underline" title={job.targetLink}>
+                      {job.targetLink}
+                    </a>
+                  </div>
 
-                <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-                  <p className="text-meta-3 capitalize font-medium">{job.linkTypeName || job.actionType || "Like"}</p>
-                </div>
-
-                <div className="flex items-center justify-center gap-1 p-2.5 xl:p-5">
-                  <p
-                    className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-                      job.status === "Active" || job.status === "active"
-                        ? "bg-success text-success"
-                        : "bg-danger text-danger"
-                    }`}
-                  >
-                    {job.status || "Active"}
-                  </p>
-                  {job.resolutionStatus === 'fallback' && (
-                    <div title={job.resolutionError || "Failed to resolve ID. Using Fallback mode."} className="text-danger flex items-center justify-center cursor-help">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                        <path d="M12 9v4" />
-                        <path d="M12 17h.01" />
-                      </svg>
+                  <div className="flex items-center justify-center p-2.5 xl:p-5">
+                    <div className="flex items-center gap-2">
+                      <img src="/images/brand/brand-05.svg" alt="brand" className="w-6 h-6 hidden sm:block" />
+                      <p className="text-black dark:text-white capitalize">{job.platform}</p>
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-                  <p className="text-meta-5">{job.likeCount || 0} / {job.maxCount}</p>
-                </div>
+                  <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
+                    <p className="text-meta-3 capitalize font-medium">{job.linkTypeName || job.actionType || "Like"}</p>
+                  </div>
 
-                <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-                  {job.isVip ? (
-                    <span className="inline-flex items-center rounded-full bg-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-800">
-                      VIP
-                    </span>
-                  ) : (
-                    <span className="text-gray-400 text-sm">-</span>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-center p-2.5 xl:p-5 space-x-3.5">
-                  <a href={`/jobs/${job._id}`} className="hover:text-primary" title="View Job">
-                    <svg
-                      className="fill-current"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                  <div className="flex items-center justify-center gap-1 p-2.5 xl:p-5">
+                    <p
+                      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+                        isCompleted
+                          ? "bg-meta-5/10 text-meta-5 dark:bg-meta-5/20"
+                          : job.status === "Active" || job.status === "active"
+                          ? "bg-success text-success"
+                          : "bg-danger text-danger"
+                      }`}
                     >
-                      <path
-                        d="M8.99981 14.8219C3.43106 14.8219 0.674805 9.50624 0.562305 9.28124C0.47793 9.11249 0.47793 8.88749 0.562305 8.71874C0.674805 8.49374 3.43106 3.20624 8.99981 3.20624C14.5686 3.20624 17.3248 8.49374 17.4373 8.71874C17.5217 8.88749 17.5217 9.11249 17.4373 9.28124C17.3248 9.50624 14.5686 14.8219 8.99981 14.8219ZM1.85605 8.99999C2.4748 10.0406 4.89356 13.5562 8.99981 13.5562C13.1061 13.5562 15.5248 10.0406 16.1436 8.99999C15.5248 7.95936 13.1061 4.44374 8.99981 4.44374C4.89356 4.44374 2.4748 7.95936 1.85605 8.99999Z"
-                      />
-                      <path
-                        d="M9 11.3906C7.67812 11.3906 6.60938 10.3219 6.60938 9C6.60938 7.67813 7.67812 6.60938 9 6.60938C10.3219 6.60938 11.3906 7.67813 11.3906 9C11.3906 10.3219 10.3219 11.3906 9 11.3906ZM9 7.875C8.38125 7.875 7.875 8.38125 7.875 9C7.875 9.61875 8.38125 10.125 9 10.125C9.61875 10.125 10.125 9.61875 10.125 9C10.125 8.38125 9.61875 7.875 9 7.875Z"
-                      />
-                    </svg>
-                  </a>
-                  <button onClick={() => handleToggleStatus(job._id, job.status)} className="hover:text-warning" title={job.status === "Active" || job.status === "active" ? "Pause Job" : "Resume Job"}>
-                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      {job.status === "Active" || job.status === "active" ? (
-                        <path fillRule="evenodd" clipRule="evenodd" d="M6 5C5.44772 5 5 5.44772 5 6V18C5 18.5523 5.44772 19 6 19H9C9.55228 19 10 18.5523 10 18V6C10 5.44772 9.55228 5 9 5H6ZM14 5C13.4477 5 13 5.44772 13 6V18C13 18.5523 13.4477 19 14 19H17C17.5523 19 18 18.5523 18 18V6C18 5.44772 17.5523 5 17 5H14Z" fill="currentColor"/>
-                      ) : (
-                        <path fillRule="evenodd" clipRule="evenodd" d="M8 5C7.44772 5 7 5.44772 7 6V18C7 18.5523 7.44772 19 8 19C8.18843 19 8.36868 18.9482 8.52824 18.8553L17.5282 13.6277C17.8207 13.4578 18 13.1417 18 12.8029C18 12.4641 17.8207 12.148 17.5282 11.9781L8.52824 6.75053C8.36868 6.65766 8.18843 6.60583 8 6.60583V5Z" fill="currentColor"/>
-                      )}
-                    </svg>
-                  </button>
-                  <button onClick={() => handleDeleteSingle(job._id)} className="hover:text-danger" title="Delete Job">
+                      {isCompleted ? "مكتمل" : (job.status || "Active")}
+                    </p>
+                    {job.resolutionStatus === 'fallback' && (
+                      <div title={job.resolutionError || "Failed to resolve ID. Using Fallback mode."} className="text-danger flex items-center justify-center cursor-help">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                          <path d="M12 9v4" />
+                          <path d="M12 17h.01" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
+                    <p className="text-meta-5">{job.likeCount || 0} / {job.maxCount}</p>
+                  </div>
+
+                  <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
+                    {job.isVip ? (
+                      <span className="inline-flex items-center rounded-full bg-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+                        VIP
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-sm">-</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-center p-2.5 xl:p-5 space-x-3.5">
+                    <a href={`/jobs/${job._id}`} className="hover:text-primary" title="View Job">
+                      <svg
+                        className="fill-current"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 18 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M8.99981 14.8219C3.43106 14.8219 0.674805 9.50624 0.562305 9.28124C0.47793 9.11249 0.47793 8.88749 0.562305 8.71874C0.674805 8.49374 3.43106 3.20624 8.99981 3.20624C14.5686 3.20624 17.3248 8.49374 17.4373 8.71874C17.5217 8.88749 17.5217 9.11249 17.4373 9.28124C17.3248 9.50624 14.5686 14.8219 8.99981 14.8219ZM1.85605 8.99999C2.4748 10.0406 4.89356 13.5562 8.99981 13.5562C13.1061 13.5562 15.5248 10.0406 16.1436 8.99999C15.5248 7.95936 13.1061 4.44374 8.99981 4.44374C4.89356 4.44374 2.4748 7.95936 1.85605 8.99999Z"
+                        />
+                        <path
+                          d="M9 11.3906C7.67812 11.3906 6.60938 10.3219 6.60938 9C6.60938 7.67813 7.67812 6.60938 9 6.60938C10.3219 6.60938 11.3906 7.67813 11.3906 9C11.3906 10.3219 10.3219 11.3906 9 11.3906ZM9 7.875C8.38125 7.875 7.875 8.38125 7.875 9C7.875 9.61875 8.38125 10.125 9 10.125C9.61875 10.125 10.125 9.61875 10.125 9C10.125 8.38125 9.61875 7.875 9 7.875Z"
+                        />
+                      </svg>
+                    </a>
+                    {isCompleted ? (
+                      <span className="text-meta-5 flex items-center justify-center" title="مكتمل (Completed)">
+                        <svg className="fill-current w-4.5 h-4.5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                        </svg>
+                      </span>
+                    ) : (
+                      <button onClick={() => handleToggleStatus(job._id, job.status)} className="hover:text-warning" title={job.status === "Active" || job.status === "active" ? "Pause Job" : "Resume Job"}>
+                        <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          {job.status === "Active" || job.status === "active" ? (
+                            <path fillRule="evenodd" clipRule="evenodd" d="M6 5C5.44772 5 5 5.44772 5 6V18C5 18.5523 5.44772 19 6 19H9C9.55228 19 10 18.5523 10 18V6C10 5.44772 9.55228 5 9 5H6ZM14 5C13.4477 5 13 5.44772 13 6V18C13 18.5523 13.4477 19 14 19H17C17.5523 19 18 18.5523 18 18V6C18 5.44772 17.5523 5 17 5H14Z" fill="currentColor"/>
+                          ) : (
+                            <path fillRule="evenodd" clipRule="evenodd" d="M8 5C7.44772 5 7 5.44772 7 6V18C7 18.5523 7.44772 19 8 19C8.18843 19 8.36868 18.9482 8.52824 18.8553L17.5282 13.6277C17.8207 13.4578 18 13.1417 18 12.8029C18 12.4641 17.8207 12.148 17.5282 11.9781L8.52824 6.75053C8.36868 6.65766 8.18843 6.60583 8 6.60583V5Z" fill="currentColor"/>
+                          )}
+                        </svg>
+                      </button>
+                    )}
+                    <button onClick={() => handleDeleteSingle(job._id)} className="hover:text-danger" title="Delete Job">
                     <svg
                       className="fill-current"
                       width="18"
@@ -462,7 +483,8 @@ const JobsListV2 = () => {
                   </button>
                 </div>
               </div>
-            ));
+            );
+          });
           })()}
         </div>
 

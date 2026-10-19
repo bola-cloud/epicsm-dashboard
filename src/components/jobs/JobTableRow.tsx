@@ -9,51 +9,63 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
   isSelected,
   onSelect,
   onDelete,
-}) => (
-  <div className="grid grid-cols-3 border-b border-stroke hover:bg-slate-100/50 dark:border-strokedark sm:grid-cols-8">
-    <div className="flex items-center gap-3 p-2.5 xl:p-5">
-      <input
-        type="checkbox"
-        className="border-gray-300 h-5 w-5 rounded"
-        checked={isSelected}
-        onChange={(e) => onSelect(job._id, e.target.checked)}
-      />
+}) => {
+  const isCompleted =
+    (typeof job.maxCount === "number" &&
+      typeof job.likeCount === "number" &&
+      job.maxCount > 0 &&
+      job.likeCount >= job.maxCount) ||
+    job.status === "Completed" ||
+    job.status === "completed" ||
+    job.status === "مكتمل";
 
-      <div className="flex-shrink-0">
-        <Image
-          src="/images/brand/brand-05.svg"
-          alt="job"
-          width={48}
-          height={48}
+  return (
+    <div className="grid grid-cols-3 border-b border-stroke hover:bg-slate-100/50 dark:border-strokedark sm:grid-cols-8">
+      <div className="flex items-center gap-3 p-2.5 xl:p-5">
+        <input
+          type="checkbox"
+          className="border-gray-300 h-5 w-5 rounded"
+          checked={isSelected}
+          onChange={(e) => onSelect(job._id, e.target.checked)}
         />
+
+        <div className="flex-shrink-0">
+          <Image
+            src="/images/brand/brand-05.svg"
+            alt="job"
+            width={48}
+            height={48}
+          />
+        </div>
+        <p className="hidden truncate text-black dark:text-white sm:block">
+          {job.platform}
+        </p>
       </div>
-      <p className="hidden truncate text-black dark:text-white sm:block">
-        {job.platform}
-      </p>
-    </div>
 
-    <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-      <p className="text-black dark:text-white">
-        {new Date(job.datePublished).toLocaleDateString()}
-      </p>
-    </div>
+      <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
+        <p className="text-black dark:text-white">
+          {new Date(job.datePublished).toLocaleDateString()}
+        </p>
+      </div>
 
-    <div className="flex items-center justify-center gap-1 p-2.5 xl:p-5">
-      <p
-        className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-          job.status === "Active"
-            ? "bg-success text-success"
-            : "bg-danger text-danger"
-        }`}
-      >
-        {job.status}
-      </p>
-      {job.isVip && (
-        <span className="inline-flex items-center rounded-full bg-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-800">
-          VIP
-        </span>
-      )}
-    </div>
+      <div className="flex items-center justify-center gap-1 p-2.5 xl:p-5">
+        <p
+          className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+            isCompleted
+              ? "bg-meta-5/10 text-meta-5 dark:bg-meta-5/20"
+              : job.status === "Active"
+              ? "bg-success text-success"
+              : "bg-danger text-danger"
+          }`}
+        >
+          {isCompleted ? "مكتمل" : job.status}
+        </p>
+        {job.isVip && (
+          <span className="inline-flex items-center rounded-full bg-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+            VIP
+          </span>
+        )}
+      </div>
 
     <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
       <p className="truncate text-black dark:text-white">{job.jobId}</p>
@@ -81,3 +93,4 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
     </div>
   </div>
 );
+};

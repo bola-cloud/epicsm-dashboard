@@ -75,7 +75,18 @@ function JobDetails() {
   }, [id]);
 
   useEffect(() => {
-    if ((Job as any)?.isV2) {
+    const isCompleted =
+      (typeof Job?.maxCount === "number" &&
+        typeof Job?.likeCount === "number" &&
+        Job.maxCount > 0 &&
+        Job.likeCount >= Job.maxCount) ||
+      Job?.status === "Completed" ||
+      Job?.status === "completed" ||
+      Job?.status === "مكتمل";
+
+    if (isCompleted) {
+      setEnabled(false);
+    } else if ((Job as any)?.isV2) {
       setEnabled(Job?.status === "Active");
     } else {
       Job?.isLive ? setEnabled(true) : setEnabled(false);
@@ -189,7 +200,20 @@ function JobDetails() {
 
               <ul className="mb-5 flex flex-col gap-2 text-black dark:text-white">
                 <li>
-                  <span>Status:</span> {Job?.status}
+                  <span>Status:</span>{" "}
+                  {((typeof Job?.maxCount === "number" &&
+                    typeof Job?.likeCount === "number" &&
+                    Job.maxCount > 0 &&
+                    Job.likeCount >= Job.maxCount) ||
+                    Job?.status === "Completed" ||
+                    Job?.status === "completed" ||
+                    Job?.status === "مكتمل") ? (
+                    <span className="inline-flex rounded-full bg-meta-5/10 px-3 py-0.5 text-sm font-semibold text-meta-5 dark:bg-meta-5/20">
+                      مكتمل
+                    </span>
+                  ) : (
+                    Job?.status
+                  )}
                 </li>
 
                 {(Job?.datePublished || Job?.createdAt) && (
@@ -228,7 +252,22 @@ function JobDetails() {
 
                 <div className="flex items-center justify-center gap-2 mt-4">
                   <li>
-                    <span>Live:</span> {(Job as any)?.isV2 ? (Job?.status === "Active" ? "Yes" : "No") : (Job?.isLive ? "Yes" : "No")}
+                    <span>Live:</span>{" "}
+                    {((typeof Job?.maxCount === "number" &&
+                      typeof Job?.likeCount === "number" &&
+                      Job.maxCount > 0 &&
+                      Job.likeCount >= Job.maxCount) ||
+                      Job?.status === "Completed" ||
+                      Job?.status === "completed" ||
+                      Job?.status === "مكتمل") ? (
+                      <span className="text-meta-5 font-semibold">No (مكتمل)</span>
+                    ) : (Job as any)?.isV2 ? (
+                      Job?.status === "Active" ? "Yes" : "No"
+                    ) : Job?.isLive ? (
+                      "Yes"
+                    ) : (
+                      "No"
+                    )}
                   </li>
 
                   <label
@@ -240,6 +279,13 @@ function JobDetails() {
                         type="checkbox"
                         id="toggle3"
                         className="sr-only"
+                        disabled={
+                          (typeof Job?.maxCount === "number" &&
+                            typeof Job?.likeCount === "number" &&
+                            Job.maxCount > 0 &&
+                            Job.likeCount >= Job.maxCount) ||
+                          Job?.status === "Completed"
+                        }
                         onChange={UpdateJob}
                       />
                       <div className="block h-8 w-14 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>
