@@ -16,6 +16,7 @@ export interface Settings {
   rrt: number;
   globalDailyReward?: number;
   rewardDelayMinutes?: number;
+  pointsPerDollar?: number;
 }
 
 const headers = {
@@ -34,6 +35,7 @@ function SettingsPage() {
     rrt: 0,
     globalDailyReward: 50,
     rewardDelayMinutes: 30,
+    pointsPerDollar: 100,
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -47,6 +49,7 @@ function SettingsPage() {
         ...res.data,
         globalDailyReward: res.data.globalDailyReward ?? 50,
         rewardDelayMinutes: res.data.rewardDelayMinutes ?? 30,
+        pointsPerDollar: res.data.pointsPerDollar ?? 100,
       });
     } catch (error) {
       const errorMessage =
@@ -231,6 +234,31 @@ function SettingsPage() {
               />
               <p className="text-gray-500 text-xs mt-1">
                 المدة بالدقائق التي ينتظرها المستخدم بعد طلب المكافأة حتى تنزل النقاط في رصيده (افتراضياً 30 دقيقة).
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="pointsPerDollar"
+                className="text-gray-700 dark:text-gray-200 mb-1 block text-sm font-medium"
+              >
+                معدل تحويل وفك الدولار إلى نقاط (Points per 1 Dollar)
+              </label>
+              <input
+                type="number"
+                id="pointsPerDollar"
+                min="1"
+                value={settings.pointsPerDollar ?? 100}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    pointsPerDollar: parseInt(e.target.value) || 1,
+                  })
+                }
+                className="border-gray-300 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-boxdark dark:border-strokedark"
+              />
+              <p className="text-gray-500 text-xs mt-1">
+                يحدد كم نقطة يحصل عليها المستخدم مقابل كل 1 دولار عند فك أو تحويل رصيد الدولار إلى نقاط (مثلاً: إذا تم ضبطه على 100، فكل 1$ = 100 نقطة).
               </p>
             </div>
           </div>

@@ -20,6 +20,20 @@ function UserProfile() {
   const [loading, setloading] = useState(false);
   const [refrech, setrefrech] = useState(false);
   const [isVipToggling, setIsVipToggling] = useState(false);
+  const [showExchangeModal, setShowExchangeModal] = useState(false);
+  const [exchangeAmount, setExchangeAmount] = useState<number | ''>('');
+  const [pointsPerDollar, setPointsPerDollar] = useState<number>(100);
+
+  async function fetchSettingsRate() {
+    try {
+      const res = await API.get('/api/v3/settings', { headers });
+      if (res.data?.pointsPerDollar) {
+        setPointsPerDollar(res.data.pointsPerDollar);
+      }
+    } catch (e) {
+      console.warn("Could not fetch settings rate", e);
+    }
+  }
 
   async function getUser() {
     try {
@@ -39,7 +53,29 @@ function UserProfile() {
 
   useEffect(() => {
     getUser();
+    fetchSettingsRate();
   }, [refrech]);
+
+  async function handleExchangeDollars() {
+    try {
+      setloading(true);
+      const res = await API.post(
+        `/api/v3/users/exchange-dollars/${User?.id}`,
+        { amount: exchangeAmount === '' ? 'all' : Number(exchangeAmount) },
+        { headers }
+      );
+      if (res.status === 200) {
+        toast.success(res.data.message || 'Dollars exchanged successfully');
+        setShowExchangeModal(false);
+        setExchangeAmount('');
+        setrefrech(!refrech);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to exchange dollars');
+    } finally {
+      setloading(false);
+    }
+  }
 
   const createdDate = User?.created
     ? new Date(
@@ -214,12 +250,29 @@ function UserProfile() {
               </tr>
               <tr>
                 <td className="px-4 py-4 font-medium text-black dark:text-white">
-                  Balance
+                  Balance (رصيد الدولارات)
                 </td>
-                <td className="px-4 py-4 text-black dark:text-white">
-                  {User?.dollars} $
+                <td className="px-4 py-4 text-black dark:text-white font-semibold">
+                  <span>{User?.dollars || 0} $</span>
+                  {(User?.dollars || 0) > 0 && (
+                    <span className="inline-block mr-2 px-2 py-0.5 text-xs rounded bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 font-normal">
+                      (يعادل {((User?.dollars || 0) * pointsPerDollar).toLocaleString()} نقطة)
+                    </span>
+                  )}
                 </td>
-                <td className="px-4 py-4"></td>
+                <td className="px-4 py-4">
+                  {(User?.dollars || 0) > 0 && (
+                    <button
+                      className="rounded bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                      onClick={() => {
+                        setExchangeAmount(User?.dollars || 0);
+                        setShowExchangeModal(true);
+                      }}
+                    >
+                      🔄 فك الدولارات إلى نقاط
+                    </button>
+                  )}
+                </td>
               </tr>
               <tr>
                 <td className="px-4 py-4 font-medium text-black dark:text-white">
@@ -303,6 +356,60 @@ function UserProfile() {
       </div>
 
 
+      {showExchangeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-700 bg-opacity-50">
+          <div className="rounded-lg bg-white p-6 text-center shadow-lg dark:bg-boxdark max-w-sm w-full mx-4">
+            <p className="mb-2 text-lg font-semibold text-black dark:text-white">
+              🔄 فك الدولارات وتحويلها لنقاط
+            </p>
+            <p className="mb-4 text-xs text-gray-500">
+              المعدل الحالي: 1$ = {pointsPerDollar} نقطة
+            </p>
+
+            <div className="text-left mb-3">
+              <label className="text-xs text-gray-600 dark:text-gray-300 mb-1 block">
+                مبلغ الدولار المراد فكه (رصيد المستخدم: {User?.dollars || 0} $):
+              </label>
+              <input
+                type="number"
+                value={exchangeAmount}
+                onChange={(e) => setExchangeAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder={`${User?.dollars || 0}`}
+                className="w-full rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                min={1}
+                max={User?.dollars || 0}
+                onWheel={(e) => e.currentTarget.blur()}
+              />
+            </div>
+
+            {exchangeAmount !== '' && Number(exchangeAmount) > 0 && (
+              <div className="mb-4 p-2.5 rounded bg-blue-50 dark:bg-blue-900/20 text-xs text-blue-700 dark:text-blue-300">
+                سيحصل المستخدم على: <strong>{(Number(exchangeAmount) * pointsPerDollar).toLocaleString()}</strong> نقطة
+              </div>
+            )}
+
+            <div className="mt-4 flex w-full items-center space-x-3">
+              <button
+                disabled={loading}
+                className="flex w-full justify-center rounded bg-primary p-2.5 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                onClick={handleExchangeDollars}
+              >
+                تأكيد الفك والتحويل
+              </button>
+              <button
+                disabled={loading}
+                className="flex w-full justify-center rounded bg-slate-400 p-2.5 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                onClick={() => {
+                  setShowExchangeModal(false);
+                  setExchangeAmount('');
+                }}
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
