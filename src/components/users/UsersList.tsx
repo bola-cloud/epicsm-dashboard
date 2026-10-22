@@ -24,6 +24,9 @@ const UsersList = () => {
   const [loading, setloading] = useState(false);
   const [refrech, setrefrech] = useState(false);
   const [Balance, setBalance] = useState<number | null>(null);
+  const [balanceTarget, setBalanceTarget] = useState<'dollars' | 'coins'>('dollars');
+  const [balanceOperation, setBalanceOperation] = useState<'add' | 'set' | 'deduct'>('add');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [Unban, setUnban] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -94,27 +97,32 @@ const UsersList = () => {
   }
 
   async function AddBalancetoUser(id: string) {
-    if (Balance) {
+    if (Balance !== null && !isNaN(Balance) && Balance >= 0) {
       try {
         setloading(true);
         const res = await API.put(
           `/api/v3/users/firestore/addbalance/${id}`,
-          { Balance },
+          {
+            amount: Balance,
+            type: balanceTarget,
+            operation: balanceOperation
+          },
           { headers },
         );
         if (res.status === 200) {
-          toast.success(`User's balance updated`);
+          toast.success(res.data.message || `تم تحديث الرصيد بنجاح`);
           setBalanceShowModal(false);
           setBalance(null);
+          setrefrech(!refrech);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to update balance", error);
-        toast.error("Failed to update balance");
+        toast.error(error.response?.data?.message || "Failed to update balance");
       } finally {
         setloading(false);
       }
     } else {
-      toast.error("Please enter a valid balance");
+      toast.error("Please enter a valid amount");
     }
   }
 
@@ -388,15 +396,34 @@ const UsersList = () => {
                       </button>
 
                       {!user.banned && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <button
-                            className="rounded bg-primary px-2.5 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50 whitespace-nowrap"
+                            title="إضافة أو تعديل رصيد الدولارات ($)"
+                            className="rounded bg-emerald-600 px-2 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50 whitespace-nowrap shadow-sm"
                             onClick={() => {
-                              setBalanceShowModal(true);
+                              setBalanceTarget('dollars');
+                              setBalanceOperation('add');
+                              setBalance(null);
                               setUserId(user.id);
+                              setSelectedUser(user);
+                              setBalanceShowModal(true);
                             }}
                           >
-                            + Balance
+                            + $ دولار
+                          </button>
+                          <button
+                            title="إضافة أو تعديل رصيد النقاط (Coins)"
+                            className="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50 whitespace-nowrap shadow-sm"
+                            onClick={() => {
+                              setBalanceTarget('coins');
+                              setBalanceOperation('add');
+                              setBalance(null);
+                              setUserId(user.id);
+                              setSelectedUser(user);
+                              setBalanceShowModal(true);
+                            }}
+                          >
+                            + نقاط
                           </button>
                         </div>
                       )}
@@ -459,34 +486,120 @@ const UsersList = () => {
 
         {BalanceShowModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-700 bg-opacity-50">
-            <div className="rounded-lg bg-white p-6 text-center shadow-lg">
-              <p className="mb-4 text-lg font-semibold">Add balance</p>
+            <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-boxdark max-w-md w-full mx-4 text-left">
+              <p className="mb-2 text-lg font-semibold text-black dark:text-white text-center">
+                {balanceTarget === 'dollars' ? '💵 تعديل رصيد الدولارات ($)' : '🪙 تعديل رصيد النقاط (Coins)'}
+              </p>
+              {selectedUser && (
+                <p className="mb-4 text-xs text-gray-500 text-center">
+                  المستخدم: <strong className="text-black dark:text-white">{selectedUser.name || selectedUser.nom || selectedUser.email || UserId}</strong>
+                  <br />
+                  الرصيد الحالي: {balanceTarget === 'dollars' ? `${selectedUser.dollars || 0} $` : `${(selectedUser.coins || 0).toLocaleString()} نقطة`}
+                </p>
+              )}
 
-              <input
-                type="number"
-                name="maxCount"
-                value={Balance || ""}
-                onChange={(e) => setBalance(Number(e.target.value))}
-                placeholder="0 $"
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                min={0}
-                onWheel={(e) => e.currentTarget.blur()}
-              />
+              {/* اختيار نوع الرصيد */}
+              <div className="mb-3">
+                <label className="text-xs text-gray-600 dark:text-gray-300 mb-1 block">نوع المحفظة:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    className={`py-1.5 text-xs font-semibold rounded border transition ${
+                      balanceTarget === 'dollars'
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                        : 'border-stroke dark:border-strokedark text-gray-600 dark:text-gray-400'
+                    }`}
+                    onClick={() => setBalanceTarget('dollars')}
+                  >
+                    💵 دولارات ($)
+                  </button>
+                  <button
+                    type="button"
+                    className={`py-1.5 text-xs font-semibold rounded border transition ${
+                      balanceTarget === 'coins'
+                        ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                        : 'border-stroke dark:border-strokedark text-gray-600 dark:text-gray-400'
+                    }`}
+                    onClick={() => setBalanceTarget('coins')}
+                  >
+                    🪙 نقاط (Coins)
+                  </button>
+                </div>
+              </div>
 
-              <div className="mt-4 flex w-full items-center space-x-4">
+              {/* اختيار نوع العملية */}
+              <div className="mb-3">
+                <label className="text-xs text-gray-600 dark:text-gray-300 mb-1 block">نوع العملية:</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    className={`py-1.5 text-xs font-semibold rounded border transition ${
+                      balanceOperation === 'add'
+                        ? 'border-green-600 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        : 'border-stroke dark:border-strokedark text-gray-600 dark:text-gray-400'
+                    }`}
+                    onClick={() => setBalanceOperation('add')}
+                  >
+                    ➕ إضافة
+                  </button>
+                  <button
+                    type="button"
+                    className={`py-1.5 text-xs font-semibold rounded border transition ${
+                      balanceOperation === 'set'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-stroke dark:border-strokedark text-gray-600 dark:text-gray-400'
+                    }`}
+                    onClick={() => setBalanceOperation('set')}
+                  >
+                    ✏️ ضبط القيمة
+                  </button>
+                  <button
+                    type="button"
+                    className={`py-1.5 text-xs font-semibold rounded border transition ${
+                      balanceOperation === 'deduct'
+                        ? 'border-red-600 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                        : 'border-stroke dark:border-strokedark text-gray-600 dark:text-gray-400'
+                    }`}
+                    onClick={() => setBalanceOperation('deduct')}
+                  >
+                    ➖ خصم
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-xs text-gray-600 dark:text-gray-300 mb-1 block">
+                  {balanceOperation === 'add' ? 'المبلغ المراد إضافته:' : balanceOperation === 'set' ? 'القيمة الجديدة للرصيد:' : 'المبلغ المراد خصمه:'}
+                </label>
+                <input
+                  type="number"
+                  name="balanceAmount"
+                  value={Balance !== null ? Balance : ""}
+                  onChange={(e) => setBalance(e.target.value === "" ? null : Number(e.target.value))}
+                  placeholder={balanceTarget === 'dollars' ? "0 $" : "0 نقطة"}
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent px-4 py-2 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                  min={0}
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
+
+              <div className="mt-4 flex w-full items-center space-x-3">
                 <button
                   disabled={loading}
-                  className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
+                  className="flex w-full justify-center rounded bg-primary p-2.5 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
                   onClick={() => AddBalancetoUser(UserId)}
                 >
-                  Add
+                  تأكيد العملية
                 </button>
                 <button
                   disabled={loading}
-                  className="flex w-full justify-center rounded bg-slate-400 p-3 font-medium text-gray hover:bg-opacity-90 disabled:opacity-50"
-                  onClick={() => setBalanceShowModal(false)}
+                  className="flex w-full justify-center rounded bg-slate-400 p-2.5 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                  onClick={() => {
+                    setBalanceShowModal(false);
+                    setBalance(null);
+                  }}
                 >
-                  Cancel
+                  إلغاء
                 </button>
               </div>
             </div>
