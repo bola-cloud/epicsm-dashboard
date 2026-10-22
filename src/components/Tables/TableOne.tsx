@@ -94,9 +94,20 @@ const TableOne = () => {
                     height={48}
                   />
                 </div>
-                <p className="hidden text-black dark:text-white sm:block">
-                  {link.platform}
-                </p>
+                <div className="hidden sm:flex flex-col">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-black dark:text-white font-medium capitalize">
+                      {link.platform}
+                    </span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      link.version === 'V2'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                        : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                    }`}>
+                      {link.version || (link.targetLink ? 'V2' : 'V1')}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center justify-center p-2.5 xl:p-5">

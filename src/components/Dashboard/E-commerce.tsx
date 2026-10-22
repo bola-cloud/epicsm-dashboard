@@ -19,8 +19,10 @@ const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
 });
 
 interface JobProps {
-  facebook: string;
-  instagram: string;
+  facebook: number | string;
+  instagram: number | string;
+  v1?: { facebook: number; instagram: number };
+  v2?: { facebook: number; instagram: number };
 }
 
 const headers = {
@@ -145,8 +147,8 @@ const ECommerce: React.FC = () => {
         </CardDataStats>
 
         <CardDataStats
-          title="Total facebook links"
-          total={Jobs?.facebook || "0"}
+          title="Total Facebook links (V1 + V2)"
+          total={typeof Jobs?.facebook === 'number' ? Jobs.facebook.toLocaleString() : (Jobs?.facebook || "0")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -160,8 +162,8 @@ const ECommerce: React.FC = () => {
         </CardDataStats>
 
         <CardDataStats
-          title="Total instagram links"
-          total={Jobs?.instagram || "0"}
+          title="Total Instagram links (V1 + V2)"
+          total={typeof Jobs?.instagram === 'number' ? Jobs.instagram.toLocaleString() : (Jobs?.instagram || "0")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

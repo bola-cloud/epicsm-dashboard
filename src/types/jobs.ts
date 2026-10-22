@@ -20,6 +20,8 @@ export interface Job {
   targetLink?: string;
   actionType?: string;
   creatorId?: string;
+  version?: string;
+  isV2?: boolean;
 }
 
 export interface FilterState {
