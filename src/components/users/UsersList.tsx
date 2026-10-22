@@ -9,6 +9,7 @@ import { User } from "../../types/user";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
 import { debounce } from "lodash";
 import API from "@/utils/API";
+import UserAvatar from "@/components/common/UserAvatar";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -294,24 +295,30 @@ const UsersList = () => {
                       className="flex flex-1 items-center  gap-5 hover:bg-gray-3 dark:hover:bg-meta-4"
                       key={user.id}
                     >
-                      <div className="relative h-14 w-14 rounded-full">
-                        <Image
-                          width={56}
-                          height={56}
-                          src={user.photo || ""}
-                          alt="User"
-                          className="h-full w-full rounded-full object-cover"
-                        />
-                      </div>
+                      <UserAvatar
+                        photo={user.photo}
+                        name={user.name}
+                        email={user.email}
+                        sizeClasses="h-14 w-14"
+                        textClasses="text-xl font-bold"
+                      />
 
-                      <div className="flex flex-1 items-center justify-between">
+                      <div className="flex flex-1 items-center justify-between gap-4">
                         <div>
                           <h5 className="font-medium text-black dark:text-white">
                             {user.name || "User"}
                           </h5>
-                          <p className="max-w-20 truncate sm:max-w-fit">
+                          <p className="max-w-20 truncate sm:max-w-fit text-xs text-gray-500">
                             {user.banned ? "Banned" : user.email}
                           </p>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-2 text-xs">
+                          <span className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded">
+                            🪙 {(user.coins || 0).toLocaleString()}
+                          </span>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded">
+                            💵 {user.dollars || 0} $
+                          </span>
                         </div>
                       </div>
                     </Link>

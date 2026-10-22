@@ -8,6 +8,7 @@ import { User } from "../../types/user";
 import { useParams } from "next/navigation";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
 import API from "@/utils/API";
+import UserAvatar from "@/components/common/UserAvatar";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -216,25 +217,30 @@ function UserProfile() {
         }
       `}</style>
       
-      <div className="relative z-20 h-35 md:h-65">
-        <Image
-          src={User?.photo || ""}
-          alt="profile cover"
-          className="h-full w-full rounded-tl-sm rounded-tr-sm object-cover object-center"
-          width={970}
-          height={260}
-        />
+      <div className="relative z-20 h-35 md:h-65 bg-gradient-to-r from-slate-800 via-primary to-slate-900 rounded-tl-sm rounded-tr-sm overflow-hidden flex items-center justify-center">
+        {User?.photo ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={User.photo}
+            alt="profile cover"
+            className="h-full w-full object-cover object-center opacity-80"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-r from-blue-900/60 via-purple-900/40 to-slate-900/80 flex items-center justify-center text-white/30 text-2xl font-bold tracking-widest uppercase">
+            {User?.name || "User Profile"}
+          </div>
+        )}
       </div>
 
       <div className="px-4 pb-6 text-center lg:pb-8 xl:pb-11.5">
         <div className="relative z-30 mx-auto -mt-22 h-30 w-full max-w-30 rounded-full bg-white/20 p-1 backdrop-blur sm:h-44 sm:max-w-44 sm:p-3">
           <div className="relative h-full w-full drop-shadow-2">
-            <Image
-              src={User?.photo || ""}
-              width={160}
-              height={160}
-              alt="profile"
-              className="h-full w-full rounded-full object-cover"
+            <UserAvatar
+              photo={User?.photo}
+              name={User?.name}
+              email={User?.email}
+              sizeClasses="h-full w-full"
+              textClasses="text-4xl sm:text-6xl font-bold"
             />
           </div>
         </div>

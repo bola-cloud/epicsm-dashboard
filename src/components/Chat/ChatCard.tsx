@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { User } from "@/types/user";
 import { getJwtFromLocalStorage } from "@/utils/localStorage";
 import API from "@/utils/API";
+import UserAvatar from "@/components/common/UserAvatar";
 
 const headers = {
   Authorization: `JWT ${getJwtFromLocalStorage()}`,
@@ -54,15 +55,13 @@ const ChatCard = () => {
               className="flex items-center gap-5 px-7.5 py-3 hover:bg-gray-3 dark:hover:bg-meta-4"
               key={key}
             >
-              <div className="relative h-14 w-14 rounded-full">
-                <Image
-                  width={56}
-                  height={56}
-                  src={user.photo || ""}
-                  alt="User"
-                  className="rounded-full object-cover min-h-14 min-w-14"
-                />
-              </div>
+              <UserAvatar
+                photo={user.photo}
+                name={user.name}
+                email={user.email}
+                sizeClasses="h-14 w-14"
+                textClasses="text-xl font-bold"
+              />
 
               <div className="flex flex-1 items-center justify-between truncate">
                 <div>
