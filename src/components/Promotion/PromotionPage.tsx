@@ -1,278 +1,99 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Clock, Info, Globe, BadgePercent } from "lucide-react";
-import { fetchTimezones } from "@/utils/timezoneService";
+import { Clock, Info, Globe, BadgePercent, Plus, Trash2, CheckCircle, AlertCircle } from "lucide-react";
 import API from "@/utils/API";
 import toast from "react-hot-toast";
 
-interface TimezoneOption {
-  id: string;
-  label: string;
-}
-
-interface GroupedTimezones {
-  [region: string]: TimezoneOption[];
-}
-
 interface Promotion {
   _id?: string;
+  title?: string;
   start: string;
   end: string;
   timezone: string;
   active: boolean;
+  rewardValue?: number;
   promotion_settings?: string;
+  createdAt?: string;
 }
 
 export function PromotionPage() {
+  const [promotionsList, setPromotionsList] = useState<Promotion[]>([]);
   const [promotionId, setPromotionId] = useState<string | null>(null);
-  const [isEnabled, setIsEnabled] = useState<boolean>(false);
+  const [title, setTitle] = useState<string>("Happy Hour");
+  const [isEnabled, setIsEnabled] = useState<boolean>(true);
   const [startTime, setStartTime] = useState<string>("16:00");
   const [endTime, setEndTime] = useState<string>("19:00");
-  const [timezone, setTimezone] = useState<string>("America/New_York");
-  const [timezones, setTimezones] = useState<TimezoneOption[]>([]);
-  const [DailyReward, setDailyReward] = useState<string>();
-  const [groupedTimezones, setGroupedTimezones] = useState<GroupedTimezones>(
-    {},
-  );
+  const [timezone, setTimezone] = useState<string>("Africa/Cairo");
+  const [dailyReward, setDailyReward] = useState<number>(100);
   const [currentTime, setCurrentTime] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDataFetched, setIsDataFetched] = useState<boolean>(false);
 
-  const calculateMinEndTime = () => {
-    const [hours, minutes] = startTime.split(":").map(Number);
-    let minEndHours = hours + 1;
+  const REWARD_PRESETS = [50, 100, 150, 200, 300, 500];
 
-    // Handle day overflow
-    if (minEndHours >= 24) {
-      minEndHours = 23;
-      return "23:59";
-    }
-
-    return `${String(minEndHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-  };
-
-  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newStartTime = e.target.value;
-    setStartTime(newStartTime);
-
-    const [startHours, startMinutes] = newStartTime.split(":").map(Number);
-    let newEndHours = startHours + 1;
-
-    if (newEndHours >= 24) {
-      newEndHours = 23;
-      const newEndTime = `${String(newEndHours).padStart(2, "0")}:${String(startMinutes).padStart(2, "0")}`;
-      setEndTime(newEndTime);
-      return;
-    }
-
-    const [endHours, endMinutes] = endTime.split(":").map(Number);
-    const startTimeInMinutes = startHours * 60 + startMinutes;
-    const endTimeInMinutes = endHours * 60 + endMinutes;
-
-    if (endTimeInMinutes - startTimeInMinutes < 60) {
-      const newEndTime = `${String(newEndHours).padStart(2, "0")}:${String(startMinutes).padStart(2, "0")}`;
-      setEndTime(newEndTime);
-    }
-  };
-
-  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEndTime = e.target.value;
-    const [endHours, endMinutes] = newEndTime.split(":").map(Number);
-    const [startHours, startMinutes] = startTime.split(":").map(Number);
-
-    const startTimeInMinutes = startHours * 60 + startMinutes;
-    const endTimeInMinutes = endHours * 60 + endMinutes;
-
-    if (endTimeInMinutes - startTimeInMinutes >= 60) {
-      setEndTime(newEndTime);
-    } else {
-      const minEndHours = startHours + 1;
-      const minEndTime = `${String(minEndHours).padStart(2, "0")}:${String(startMinutes).padStart(2, "0")}`;
-      setEndTime(minEndTime);
-    }
-  };
-
-  const api = {
-    async getPromotions(): Promise<Promotion[]> {
-      try {
-        const response = await API.get(`/api/v3/promotions`);
-
-        if (response.data) {
-          if (Array.isArray(response.data)) {
-            return response.data;
-          } else if (response.data.data && Array.isArray(response.data.data)) {
-            return response.data.data;
-          } else if (response.data.data) {
-            return [response.data.data];
-          } else {
-            return [response.data];
-          }
-        }
-        return [];
-      } catch (error) {
-        console.log("Error fetching promotions:", error);
-        setError("Failed to fetch promotions");
-        return [];
-      }
-    },
-
-    async createPromotion(promotionData: Promotion): Promise<Promotion | null> {
-      try {
-        const response = await API.post(`/api/v3/promotions`, promotionData);
-        return response.data.data || response.data;
-      } catch (error) {
-        console.error("Error creating promotion:", error);
-        setError("Failed to create promotion");
-        return null;
-      }
-    },
-
-    async updatePromotion(
-      id: string,
-      promotionData: Partial<Promotion>,
-    ): Promise<Promotion | null> {
-      try {
-        const response = await API.put(`/api/v3/promotions`, promotionData);
-        return response.data.data || response.data;
-      } catch (error) {
-        console.error(`Error updating promotion ${id}:`, error);
-        setError(`Failed to update promotion ${id}`);
-        return null;
-      }
-    },
-  };
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const promotions = await api.getPromotions();
-
-        if (promotions && promotions.length > 0) {
-          const promotion = promotions[0];
-
-          if (promotion._id) {
-            setPromotionId(promotion._id);
-          }
-
-          setIsEnabled(promotion.active);
-          setStartTime(promotion.start);
-          setEndTime(promotion.end);
-          setTimezone(promotion.timezone);
-          setDailyReward(promotion.promotion_settings);
-
-          setIsDataFetched(true);
-        } else {
-          console.log("No promotions found in the response");
-        }
-      } catch (error) {
-        console.log("Error loading promotion data:", error);
-        setError("Failed to load promotion data");
-      }
-    };
-
-    fetchInitialData();
-  }, []);
-
-  useEffect(() => {
-    const getTimezones = async () => {
+  const fetchPromotions = async () => {
+    try {
       setIsLoading(true);
-      try {
-        const fetchedTimezones: string[] = await fetchTimezones();
+      setError(null);
+      const res = await API.get("/api/v3/promotions");
+      if (res.data) {
+        let list: Promotion[] = [];
+        if (Array.isArray(res.data.promotions)) {
+          list = res.data.promotions;
+        } else if (Array.isArray(res.data)) {
+          list = res.data;
+        } else if (res.data.data) {
+          list = Array.isArray(res.data.data) ? res.data.data : [res.data.data];
+        }
 
-        const formattedTimezones: TimezoneOption[] = fetchedTimezones.map(
-          (tz) => {
-            let label = tz.replace(/_/g, " ");
+        setPromotionsList(list);
 
-            if (label.includes("/")) {
-              const parts = label.split("/");
-              label = `${parts[parts.length - 1]} (${parts[0]})`;
-            }
-
-            return { id: tz, label: label };
-          },
-        );
-
-        const sortedTimezones = formattedTimezones.sort((a, b) =>
-          a.label.localeCompare(b.label),
-        );
-
-        setTimezones(sortedTimezones);
-
-        const grouped: GroupedTimezones = sortedTimezones.reduce(
-          (acc: GroupedTimezones, tz) => {
-            const region = tz.id.split("/")[0];
-            if (!acc[region]) {
-              acc[region] = [];
-            }
-            acc[region].push(tz);
-            return acc;
-          },
-          {},
-        );
-
-        setGroupedTimezones(grouped);
-      } catch (error) {
-        console.log("Failed to fetch timezones:", error);
-        setError("Failed to fetch timezones");
-
-        const fallbackTimezones: TimezoneOption[] = [
-          { id: "America/New_York", label: "New York (America)" },
-          { id: "America/Chicago", label: "Chicago (America)" },
-          { id: "America/Denver", label: "Denver (America)" },
-          { id: "America/Los_Angeles", label: "Los Angeles (America)" },
-          { id: "UTC", label: "UTC" },
-          { id: "Europe/London", label: "London (Europe)" },
-          { id: "Europe/Paris", label: "Paris (Europe)" },
-          { id: "Asia/Tokyo", label: "Tokyo (Asia)" },
-          { id: "Africa/Casablanca", label: "Casablanca (Africa)" },
-        ];
-
-        setTimezones(fallbackTimezones);
-
-        const grouped: GroupedTimezones = fallbackTimezones.reduce(
-          (acc: GroupedTimezones, tz) => {
-            const region = tz.id.split("/")[0];
-            if (!acc[region]) {
-              acc[region] = [];
-            }
-            acc[region].push(tz);
-            return acc;
-          },
-          {},
-        );
-
-        setGroupedTimezones(grouped);
-      } finally {
-        setIsLoading(false);
+        // Select the active or first promotion into form
+        const current = list.find((p) => p.active) || list[0];
+        if (current) {
+          setPromotionId(current._id || null);
+          setTitle(current.title || "Happy Hour");
+          setIsEnabled(Boolean(current.active));
+          setStartTime(current.start || "16:00");
+          setEndTime(current.end || "19:00");
+          setTimezone(current.timezone || "Africa/Cairo");
+          setDailyReward(current.rewardValue || Number(current.promotion_settings) || 100);
+        }
       }
-    };
+    } catch (err: any) {
+      console.error("Error fetching promotions:", err);
+      setError("Failed to load promotions");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    getTimezones();
+  useEffect(() => {
+    fetchPromotions();
   }, []);
 
+  // Update clock every second
   useEffect(() => {
     const updateTime = () => {
       try {
         setCurrentTime(
-          new Date().toLocaleTimeString("en-US", {
+          new Date().toLocaleTimeString("ar-EG", {
             timeZone: timezone,
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
             hour12: true,
-          }),
+          })
         );
-      } catch (error) {
-        setCurrentTime("Invalid timezone");
+      } catch (err) {
+        setCurrentTime(new Date().toLocaleTimeString());
       }
     };
 
     updateTime();
     const interval = setInterval(updateTime, 1000);
-
     return () => clearInterval(interval);
   }, [timezone]);
 
@@ -281,73 +102,125 @@ export function PromotionPage() {
     setError(null);
 
     try {
-      const promotionData: Partial<Promotion> = {
+      const payload = {
+        id: promotionId,
+        title,
         start: startTime,
         end: endTime,
-        timezone: timezone,
+        timezone,
         active: isEnabled,
+        rewardValue: Number(dailyReward) || 100,
+        promotion_settings: String(dailyReward || 100),
       };
 
-      if (isDataFetched || promotionId) {
-        if (!promotionId) {
-          setError("No promotion ID available for update");
-          return;
-        }
-
-        const updatedPromotion = await api.updatePromotion(
-          promotionId,
-          promotionData,
-        );
-        if (updatedPromotion) {
-          toast.success("Promotion updated successfully");
-        }
+      let res;
+      if (promotionId) {
+        res = await API.put("/api/v3/promotions", payload);
       } else {
-        const newPromotion = await api.createPromotion(
-          promotionData as Promotion,
-        );
-        if (newPromotion && newPromotion._id) {
-          setPromotionId(newPromotion._id);
-          setIsDataFetched(true);
-          toast.success("Promotion created successfully");
-        }
+        res = await API.post("/api/v3/promotions", payload);
       }
-    } catch (error) {
-      console.error("Error saving promotion:", error);
-      setError("Failed to save promotion");
+
+      if (res.data && res.data.success) {
+        toast.success("تم حفظ إعدادات البروموشن بنجاح!");
+        await fetchPromotions();
+      } else {
+        toast.error("حدث خطأ أثناء الحفظ");
+      }
+    } catch (err: any) {
+      console.error("Error saving promotion:", err);
+      setError("فشل في حفظ البروموشن");
+      toast.error("فشل في حفظ البروموشن");
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleAddNew = () => {
+    setPromotionId(null);
+    setTitle("New Happy Hour");
+    setStartTime("20:00");
+    setEndTime("22:00");
+    setTimezone("Africa/Cairo");
+    setIsEnabled(true);
+    setDailyReward(150);
+  };
+
+  const handleDeletePromotion = async (id?: string) => {
+    if (!id) return;
+    if (!confirm("هل أنت متأكد من حذف هذا البروموشن؟")) return;
+
+    try {
+      await API.delete(`/api/v3/promotions/${id}`);
+      toast.success("تم حذف البروموشن بنجاح");
+      await fetchPromotions();
+    } catch (err) {
+      console.error("Error deleting promotion:", err);
+      toast.error("فشل حذف البروموشن");
+    }
+  };
+
+  const handleSelectPromotion = (promo: Promotion) => {
+    setPromotionId(promo._id || null);
+    setTitle(promo.title || "Happy Hour");
+    setIsEnabled(Boolean(promo.active));
+    setStartTime(promo.start || "16:00");
+    setEndTime(promo.end || "19:00");
+    setTimezone(promo.timezone || "Africa/Cairo");
+    setDailyReward(promo.rewardValue || Number(promo.promotion_settings) || 100);
+  };
+
   return (
-    <div className="bg-gray-50 flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-4xl space-y-6">
+        
+        {/* Header Title */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-black dark:text-white sm:text-3xl">
+              إدارة العروض والمكافآت (Happy Hour & Promotions)
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              تحكم في أوقات مضاعفة النقاط وقيمة المكافأة اليومية للمستخدمين والتنبيهات المسبقة
+            </p>
+          </div>
+
+          <button
+            onClick={handleAddNew}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            <span>إضافة بروموشن جديد</span>
+          </button>
+        </div>
+
         {error && (
-          <div className="bg-red-100 border-red-400 text-red-700 relative mb-4 rounded border px-4 py-3">
-            <span className="block sm:inline">{error}</span>
+          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
-        {isDataFetched && (
-          <div className="relative mb-4 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">
-            <span className="block sm:inline">
-              Promotion data loaded successfully: {startTime} - {endTime} (
-              {timezone})
-            </span>
-          </div>
-        )}
-
-        <div className="w-full rounded-xl bg-white p-8 shadow-lg">
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-gray-800 text-2xl font-bold">Happy Hour</h2>
-              <div className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
-                {isEnabled ? "Active" : "Inactive"}
+        {/* Main Settings Card */}
+        <div className="rounded-xl border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:p-8">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-stroke pb-6 dark:border-strokedark">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-primary dark:bg-blue-900/20">
+                <BadgePercent className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-black dark:text-white">
+                  {promotionId ? `تعديل: ${title}` : "إنشاء بروموشن جديد"}
+                </h3>
+                <span className="text-xs text-gray-500 font-mono">
+                  {promotionId ? `ID: ${promotionId}` : "بروموشن جديد سيتم إضافته للنظام"}
+                </span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-600 text-sm font-medium">
-                {isEnabled ? "Enabled" : "Disabled"}
+
+            {/* Enable / Disable Switch */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-black dark:text-white">
+                {isEnabled ? "مفعل (Active)" : "معطل (Disabled)"}
               </span>
               <label className="relative inline-flex cursor-pointer items-center">
                 <input
@@ -356,123 +229,200 @@ export function PromotionPage() {
                   checked={isEnabled}
                   onChange={() => setIsEnabled(!isEnabled)}
                 />
-                <div className="h-6 w-12 rounded-full bg-graydark after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-2 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-6"></div>
+                <div className="h-6 w-12 rounded-full bg-slate-300 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-success peer-checked:after:translate-x-6"></div>
               </label>
             </div>
           </div>
 
-          <div className="mb-8 rounded-lg border border-blue-100 bg-blue-50 p-4">
-            <div className="flex items-start gap-3">
-              <Info className="mt-0.5 h-5 w-5 text-blue-500" />
-              <p className="text-sm text-blue-700">
-                Set up happy hour promotion schedule.
-              </p>
-            </div>
-          </div>
-
           <div className="space-y-6">
-            <div className="border-gray-100 border-b pb-6">
-              <h3 className="text-gray-700 mb-4 flex items-center gap-2 font-semibold">
-                <Clock className="h-5 w-5 text-blue-500" />
-                Time Schedule
-              </h3>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="flex flex-col">
-                  <label className="text-gray-600 mb-2 text-sm font-medium">
-                    Starting Time
-                  </label>
+            {/* Title & Daily Reward row */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-black dark:text-white">
+                  اسم العرض (Title)
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="مثال: Happy Hour الجمعة"
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                />
+              </div>
+
+              {/* Dynamic Daily Reward Amount Input */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-black dark:text-white">
+                  قيمة المكافأة في البروموشن (نقطة)
+                </label>
+                <div className="flex items-center gap-2">
                   <input
-                    type="time"
-                    className="border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg border px-4 py-3 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    disabled={!isEnabled}
-                    value={startTime}
-                    onChange={handleStartTimeChange}
-                    max="23:00" // Maximum start time is 23:00 to allow for 1 hour difference
+                    type="number"
+                    min="10"
+                    step="10"
+                    value={dailyReward}
+                    onChange={(e) => setDailyReward(Number(e.target.value))}
+                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 font-bold text-primary outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-lg"
                   />
+                  <span className="text-sm font-bold text-gray-500 whitespace-nowrap">🪙 نقطة</span>
                 </div>
-                <div className="flex flex-col">
-                  <label className="text-gray-600 mb-2 text-sm font-medium">
-                    Ending Time
-                  </label>
-                  <input
-                    type="time"
-                    className="border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg border px-4 py-3 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    disabled={!isEnabled}
-                    value={endTime}
-                    onChange={handleEndTimeChange}
-                    min={calculateMinEndTime()}
-                  />
-                  <small className="text-gray-500 mt-1">
-                    Must be at least 1 hour after start time
-                  </small>
+
+                {/* Quick Presets */}
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <span className="text-xs text-gray-400 self-center ml-1">سريع:</span>
+                  {REWARD_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setDailyReward(preset)}
+                      className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+                        dailyReward === preset
+                          ? "bg-primary text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-meta-4 dark:text-gray-300"
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <div>
-              <h3 className="text-gray-700 mb-4 flex items-center gap-2 font-semibold">
-                <Globe className="h-5 w-5 text-blue-500" />
-                Timezone Settings
-              </h3>
-              <div className="flex flex-col">
-                <label className="text-gray-600 mb-2 text-sm font-medium">
-                  Select Timezone
+            {/* Time Schedule (Start / End) */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-black dark:text-white">
+                  <Clock className="h-4 w-4 text-primary" />
+                  وقت البدء (Starting Time)
                 </label>
-                {isLoading ? (
-                  <div className="text-gray-500 py-3">Loading timezones...</div>
-                ) : (
-                  <select
-                    className="border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg border px-4 py-3 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
-                    disabled={!isEnabled || isLoading}
-                  >
-                    {Object.keys(groupedTimezones)
-                      .sort()
-                      .map((region) => (
-                        <optgroup key={region} label={region}>
-                          {groupedTimezones[region].map((tz) => (
-                            <option key={tz.id} value={tz.id}>
-                              {tz.label}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                  </select>
-                )}
-                <p className="text-gray-500 mt-2 text-sm">
-                  Current local time:{" "}
-                  <span className="font-medium">{currentTime}</span>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white font-mono text-base"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-black dark:text-white">
+                  <Clock className="h-4 w-4 text-primary" />
+                  وقت الانتهاء (Ending Time)
+                </label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white font-mono text-base"
+                />
+              </div>
+            </div>
+
+            {/* Timezone Selection */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-black dark:text-white">
+                <Globe className="h-4 w-4 text-primary" />
+                المنطقة الزمنية (Timezone)
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <select
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  className="sm:col-span-2 rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                >
+                  <option value="Africa/Cairo">مصر (Africa/Cairo) - الافتراضي والموصى به</option>
+                  <option value="Asia/Riyadh">السعودية (Asia/Riyadh)</option>
+                  <option value="Asia/Dubai">الإمارات (Asia/Dubai)</option>
+                  <option value="UTC">توقيت غرينتش العالمي (UTC)</option>
+                  <option value="Africa/Casablanca">المغرب (Africa/Casablanca)</option>
+                  <option value="Europe/London">لندن (Europe/London)</option>
+                  <option value="America/New_York">نيويورك (America/New_York)</option>
+                </select>
+
+                <div className="flex items-center justify-center rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:bg-meta-4 dark:text-gray-300 font-mono">
+                  الوقت الآن: <span className="font-bold text-primary mr-1">{currentTime}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Information Notice */}
+            <div className="rounded-lg border border-blue-100 bg-blue-50/70 p-4 text-xs text-blue-800 dark:bg-blue-900/20 dark:border-blue-900/50 dark:text-blue-300 flex items-start gap-3">
+              <Info className="h-5 w-5 flex-shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+              <div>
+                <p className="font-semibold mb-1">تنبيه تلقائي لمستخدمي الموبايل (Upcoming Promotion):</p>
+                <p>
+                  يقوم النظام تلقائياً بإرسال كائن <code>upcomingPromotion</code> لتطبيق الموبايل قبل بدء العرض مع توقيت البداية والانتهاء ليعرض للمستخدم تنبيهاً بمضاعفة المكافأة، وعند بدء وقت العرض يتم تحديث المكافأة فورياً دون أي تأخير.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
-              <h3 className="text-gray-700 flex items-center gap-2 font-semibold">
-                <BadgePercent className="h-5 w-5 text-blue-500" />
-                Daily Reward :
-              </h3>
-
-              <p className="text-gray-500 text-sm">
-                <span className="font-medium">{DailyReward}</span>
-              </p>
+            {/* Save Button */}
+            <div className="flex justify-end pt-4 border-t border-stroke dark:border-strokedark">
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-8 py-3 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                {isSaving ? "جاري الحفظ..." : "حفظ التغييرات (Save Changes)"}
+              </button>
             </div>
           </div>
-
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={handleSave}
-              className={`rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${
-                !isLoading && !isSaving
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              }`}
-              disabled={isLoading || isSaving}
-            >
-              {isSaving ? "Saving..." : "Save Changes"}
-            </button>
-          </div>
         </div>
+
+        {/* Existing Promotions List */}
+        <div className="rounded-xl border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <h3 className="mb-4 text-lg font-bold text-black dark:text-white">
+            قائمة العروض المحفوظة ({promotionsList.length})
+          </h3>
+
+          {promotionsList.length === 0 ? (
+            <p className="text-sm text-gray-500 py-4 text-center">لا توجد عروض محفوظة حالياً</p>
+          ) : (
+            <div className="divide-y divide-stroke dark:divide-strokedark">
+              {promotionsList.map((promo) => (
+                <div
+                  key={promo._id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between py-4 gap-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`h-3 w-3 rounded-full ${
+                        promo.active ? "bg-success" : "bg-gray-300"
+                      }`}
+                    ></span>
+                    <div>
+                      <h4 className="font-semibold text-black dark:text-white">
+                        {promo.title || "Happy Hour"}
+                      </h4>
+                      <p className="text-xs text-gray-500 font-mono mt-0.5">
+                        {promo.start} إلى {promo.end} ({promo.timezone || "Africa/Cairo"})
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-primary bg-primary/10 px-3 py-1 rounded-full text-xs">
+                      🪙 {promo.rewardValue || promo.promotion_settings || 100} نقطة
+                    </span>
+                    <button
+                      onClick={() => handleSelectPromotion(promo)}
+                      className="text-xs rounded border border-stroke px-3 py-1.5 font-medium hover:bg-gray-100 dark:border-strokedark dark:hover:bg-meta-4"
+                    >
+                      تعديل
+                    </button>
+                    <button
+                      onClick={() => handleDeletePromotion(promo._id)}
+                      className="text-xs text-danger hover:opacity-80 p-1.5"
+                      title="حذف"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );
