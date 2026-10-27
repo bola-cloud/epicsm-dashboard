@@ -19,7 +19,30 @@ interface ExtractionAccount {
   email: string | null;
 }
 
+interface CookieHealth {
+  platform: string;
+  isConfigured: boolean;
+  totalJobs: number;
+  resolvedCount: number;
+  fallbackCount: number;
+  successRate: number;
+  consecutiveFailures: number;
+  lastSuccessAt: string | null;
+  lastFallback: {
+    jobId: string;
+    targetLink: string;
+    error: string;
+    createdAt: string;
+  } | null;
+  healthStatus: "healthy" | "isolated_issue" | "critical" | "not_configured";
+  message: string;
+}
+
 const CookieSettings = () => {
+  // --- Diagnostics & Health ---
+  const [cookieHealth, setCookieHealth] = useState<CookieHealth[]>([]);
+  const [healthLoading, setHealthLoading] = useState(false);
+
   // --- Admin cookies (raw) ---
   const [platform, setPlatform] = useState("facebook");
   const [cookieString, setCookieString] = useState("");
@@ -36,6 +59,17 @@ const CookieSettings = () => {
   const [exLoading, setExLoading] = useState(false);
   const [exMsg, setExMsg] = useState("");
   const [usersLoading, setUsersLoading] = useState(false);
+
+  // Fetch cookie health & diagnostics
+  const fetchCookieHealth = async () => {
+    setHealthLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/cookies-health`);
+      const data = await res.json();
+      setCookieHealth(Array.isArray(data) ? data : []);
+    } catch {}
+    setHealthLoading(false);
+  };
 
   // Fetch admin cookie status
   const fetchCookieStatus = async () => {
@@ -75,6 +109,7 @@ const CookieSettings = () => {
   useEffect(() => {
     fetchCookieStatus();
     fetchExtractionAccounts();
+    fetchCookieHealth();
   }, []);
 
   useEffect(() => {
@@ -96,7 +131,7 @@ const CookieSettings = () => {
       });
       const data = await res.json();
       setAdminCookieMsg(res.ok ? `success:${data.message}` : `error:${data.message}`);
-      if (res.ok) { setCookieString(""); fetchCookieStatus(); }
+      if (res.ok) { setCookieString(""); fetchCookieStatus(); fetchCookieHealth(); }
     } catch (err: any) {
       setAdminCookieMsg(`error:${err.message}`);
     } finally {
@@ -117,7 +152,7 @@ const CookieSettings = () => {
       });
       const data = await res.json();
       setExMsg(res.ok ? `success:${data.message}` : `error:${data.message}`);
-      if (res.ok) fetchExtractionAccounts();
+      if (res.ok) { fetchExtractionAccounts(); fetchCookieHealth(); }
     } catch (err: any) {
       setExMsg(`error:${err.message}`);
     } finally {
@@ -139,6 +174,128 @@ const CookieSettings = () => {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-black dark:text-white">V2 System Settings</h2>
         <p className="text-sm text-gray-500 mt-1">Configure cookies and extraction accounts for automatic ID resolution</p>
+      </div>
+
+      {/* ==================== COOKIE HEALTH & DIAGNOSTICS ==================== */}
+      <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke pb-4 dark:border-strokedark">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success bg-opacity-10 text-success">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-black dark:text-white flex items-center gap-2">
+                فحص ومراقبة استقرار الكوكيز (Cookie Health & Diagnostics)
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+                </span>
+              </h3>
+              <p className="text-xs text-gray-500">
+                متابعة دقيقة للأداء ونسبة استخراج المعرفات، والتمييز بين حالات الروابط الفردية وتلف الكوكيز الحقيقي.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={fetchCookieHealth}
+            disabled={healthLoading}
+            className="flex items-center gap-2 rounded bg-gray-100 hover:bg-gray-200 dark:bg-meta-4 dark:hover:bg-opacity-80 px-3 py-1.5 text-xs font-medium text-black dark:text-white transition disabled:opacity-50"
+          >
+            <svg className={`w-3.5 h-3.5 ${healthLoading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {healthLoading ? "جاري التحديث..." : "تحديث الفحص"}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {cookieHealth.map((item) => {
+            const isCritical = item.healthStatus === "critical";
+            const isIsolated = item.healthStatus === "isolated_issue";
+            const isHealthy = item.healthStatus === "healthy";
+
+            return (
+              <div
+                key={item.platform}
+                className={`rounded-lg border p-4 transition-all ${
+                  isCritical
+                    ? "border-danger bg-danger bg-opacity-5"
+                    : isIsolated
+                    ? "border-warning border-opacity-40 bg-warning bg-opacity-5"
+                    : isHealthy
+                    ? "border-success border-opacity-30 bg-success bg-opacity-5"
+                    : "border-stroke dark:border-strokedark"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-base capitalize text-black dark:text-white">
+                      {item.platform}
+                    </span>
+                    <span className="text-xs text-gray-400">({item.totalJobs.toLocaleString()} طلب)</span>
+                  </div>
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      isCritical
+                        ? "bg-danger text-white"
+                        : isIsolated
+                        ? "bg-warning bg-opacity-20 text-warning"
+                        : isHealthy
+                        ? "bg-success bg-opacity-15 text-success"
+                        : "bg-gray-200 text-gray-700 dark:bg-meta-4 dark:text-gray-300"
+                    }`}
+                  >
+                    {isCritical && "🔴 تنبيه: فشل متكرر للكوكيز"}
+                    {isIsolated && "🟡 حالة فردية لمستخدم (الكوكيز سليمة)"}
+                    {isHealthy && "🟢 سليمة ومستقرة تماماً"}
+                    {item.healthStatus === "not_configured" && "⚪ غير معينة"}
+                  </span>
+                </div>
+
+                {/* Explanation text */}
+                <div className="rounded p-2.5 mb-3 bg-white bg-opacity-60 dark:bg-boxdark-2 text-xs leading-relaxed text-black dark:text-white">
+                  {item.message}
+                </div>
+
+                {/* Metrics */}
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="rounded bg-white dark:bg-boxdark p-2 border border-stroke dark:border-strokedark">
+                    <span className="text-gray-400 block text-[10px]">نسبة النجاح</span>
+                    <span className="font-bold text-success text-sm">{item.successRate}%</span>
+                  </div>
+                  <div className="rounded bg-white dark:bg-boxdark p-2 border border-stroke dark:border-strokedark">
+                    <span className="text-gray-400 block text-[10px]">طلبات ناجحة</span>
+                    <span className="font-bold text-black dark:text-white text-sm">{item.resolvedCount.toLocaleString()}</span>
+                  </div>
+                  <div className="rounded bg-white dark:bg-boxdark p-2 border border-stroke dark:border-strokedark">
+                    <span className="text-gray-400 block text-[10px]">طلبات مباشرة (Fallback)</span>
+                    <span className={`font-bold text-sm ${item.fallbackCount > 0 ? "text-warning" : "text-gray-500"}`}>
+                      {item.fallbackCount}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Isolated or fallback details */}
+                {item.lastFallback && (
+                  <div className="mt-3 border-t border-stroke dark:border-strokedark pt-2 text-[11px] text-gray-500">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-gray-700 dark:text-gray-300">آخر طلب تم تحويله لرابط مباشر:</span>
+                      <span className="text-gray-400">
+                        {new Date(item.lastFallback.createdAt).toLocaleDateString("ar-EG")}{" "}
+                        {new Date(item.lastFallback.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <p className="truncate text-gray-400 font-mono" title={item.lastFallback.targetLink}>
+                      {item.lastFallback.targetLink}
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
