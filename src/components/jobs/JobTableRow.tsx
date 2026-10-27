@@ -42,11 +42,11 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
             {job.platform}
           </p>
           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-            job.version === 'V2' || job.targetLink
+            job.isV2 || (job.version && job.version.toUpperCase() === 'V2') || job.targetLink
               ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
               : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
           }`}>
-            {job.version || (job.targetLink ? 'V2' : 'V1')}
+            {job.isV2 || (job.version && job.version.toUpperCase() === 'V2') || job.targetLink ? 'V2' : (job.version || 'V1')}
           </span>
         </div>
       </div>
