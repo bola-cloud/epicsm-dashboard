@@ -57,7 +57,7 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
         </p>
       </div>
 
-      <div className="flex items-center justify-center gap-1 p-2.5 xl:p-5">
+      <div className="flex items-center justify-center gap-1.5 p-2.5 xl:p-5">
         <p
           className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
             isCompleted
@@ -73,6 +73,28 @@ export const JobTableRow: React.FC<JobTableRowProps> = ({
           <span className="inline-flex items-center rounded-full bg-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-800">
             VIP
           </span>
+        )}
+        {(job.resolutionStatus === 'fallback' || job.isFallback) && (
+          <div
+            title={job.resolutionError || "تحذير: تعذر استخراج المعرف آلياً بواسطة الكوكيز/السكربت وتم تحويل الأوردر لرابط مباشر (Fallback)"}
+            className="text-amber-500 hover:text-amber-600 flex items-center justify-center cursor-help"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+              <path d="M12 9v4" />
+              <path d="M12 17h.01" />
+            </svg>
+          </div>
         )}
       </div>
 

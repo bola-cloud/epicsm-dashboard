@@ -22,6 +22,9 @@ export interface Job {
   creatorId?: string;
   version?: string;
   isV2?: boolean;
+  resolutionStatus?: string;
+  resolutionError?: string;
+  isFallback?: boolean;
 }
 
 export interface FilterState {
