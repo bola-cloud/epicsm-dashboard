@@ -1,15 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Clock, Info, Globe, BadgePercent, Plus, Trash2, CheckCircle, AlertCircle } from "lucide-react";
+import { Clock, Info, Globe, BadgePercent, Plus, Trash2, CheckCircle, AlertCircle, Calendar } from "lucide-react";
 import API from "@/utils/API";
 import toast from "react-hot-toast";
 
 interface Promotion {
   _id?: string;
   title?: string;
+  startDate?: string;
+  endDate?: string;
   start: string;
   end: string;
+  startAt?: string;
+  endAt?: string;
+  isRecurring?: boolean;
   timezone: string;
   active: boolean;
   rewardValue?: number;
@@ -18,12 +23,17 @@ interface Promotion {
 }
 
 export function PromotionPage() {
+  const getTodayStr = () => new Date().toISOString().split("T")[0];
+
   const [promotionsList, setPromotionsList] = useState<Promotion[]>([]);
   const [promotionId, setPromotionId] = useState<string | null>(null);
   const [title, setTitle] = useState<string>("Happy Hour");
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
+  const [startDate, setStartDate] = useState<string>(getTodayStr());
+  const [endDate, setEndDate] = useState<string>(getTodayStr());
   const [startTime, setStartTime] = useState<string>("16:00");
   const [endTime, setEndTime] = useState<string>("19:00");
+  const [isRecurring, setIsRecurring] = useState<boolean>(false);
   const [timezone, setTimezone] = useState<string>("Africa/Cairo");
   const [dailyReward, setDailyReward] = useState<number>(100);
   const [currentTime, setCurrentTime] = useState<string>("");
@@ -56,8 +66,11 @@ export function PromotionPage() {
           setPromotionId(current._id || null);
           setTitle(current.title || "Happy Hour");
           setIsEnabled(Boolean(current.active));
+          setStartDate(current.startDate || getTodayStr());
+          setEndDate(current.endDate || current.startDate || getTodayStr());
           setStartTime(current.start || "16:00");
           setEndTime(current.end || "19:00");
+          setIsRecurring(Boolean(current.isRecurring));
           setTimezone(current.timezone || "Africa/Cairo");
           setDailyReward(current.rewardValue || Number(current.promotion_settings) || 100);
         }
@@ -105,8 +118,11 @@ export function PromotionPage() {
       const payload = {
         id: promotionId,
         title,
+        startDate,
+        endDate,
         start: startTime,
         end: endTime,
+        isRecurring,
         timezone,
         active: isEnabled,
         rewardValue: Number(dailyReward) || 100,
@@ -138,8 +154,11 @@ export function PromotionPage() {
   const handleAddNew = () => {
     setPromotionId(null);
     setTitle("New Happy Hour");
+    setStartDate(getTodayStr());
+    setEndDate(getTodayStr());
     setStartTime("20:00");
     setEndTime("22:00");
+    setIsRecurring(false);
     setTimezone("Africa/Cairo");
     setIsEnabled(true);
     setDailyReward(150);
@@ -163,8 +182,11 @@ export function PromotionPage() {
     setPromotionId(promo._id || null);
     setTitle(promo.title || "Happy Hour");
     setIsEnabled(Boolean(promo.active));
+    setStartDate(promo.startDate || getTodayStr());
+    setEndDate(promo.endDate || promo.startDate || getTodayStr());
     setStartTime(promo.start || "16:00");
     setEndTime(promo.end || "19:00");
+    setIsRecurring(Boolean(promo.isRecurring));
     setTimezone(promo.timezone || "Africa/Cairo");
     setDailyReward(promo.rewardValue || Number(promo.promotion_settings) || 100);
   };
@@ -288,7 +310,36 @@ export function PromotionPage() {
               </div>
             </div>
 
-            {/* Time Schedule (Start / End) */}
+            {/* Date Schedule (Start Date / End Date) */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-black dark:text-white">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  تاريخ البدء (Start Date) <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white font-mono text-base"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-black dark:text-white">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  تاريخ الانتهاء (End Date) <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white font-mono text-base"
+                />
+              </div>
+            </div>
+
+            {/* Time Schedule (Start Time / End Time) */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
                 <label className="mb-2 flex items-center gap-2 text-sm font-medium text-black dark:text-white">
@@ -315,6 +366,26 @@ export function PromotionPage() {
                   className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white font-mono text-base"
                 />
               </div>
+            </div>
+
+            {/* Daily Recurring Checkbox */}
+            <div className="rounded-lg border border-stroke p-4 bg-gray-50/50 dark:border-strokedark dark:bg-meta-4/20">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isRecurring}
+                  onChange={(e) => setIsRecurring(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-stroke text-primary focus:ring-primary"
+                />
+                <div>
+                  <span className="text-sm font-bold text-black dark:text-white">
+                    تكرار العرض يومياً (Daily Recurring)
+                  </span>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    إذا كان هذا الخيار معطلاً (الافتراضي)، يتم تشغيل العرض فقط في التاريخ المحدد (اليوم) ولا يتكرر غداً تلقائياً، مما يمنع إرسال عروض الغد في قسم الـ Upcoming بالخطأ.
+                  </p>
+                </div>
+              </label>
             </div>
 
             {/* Timezone Selection */}
@@ -390,11 +461,23 @@ export function PromotionPage() {
                       }`}
                     ></span>
                     <div>
-                      <h4 className="font-semibold text-black dark:text-white">
-                        {promo.title || "Happy Hour"}
-                      </h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-black dark:text-white">
+                          {promo.title || "Happy Hour"}
+                        </h4>
+                        <span
+                          className={`rounded px-2 py-0.5 text-[10px] font-semibold ${
+                            promo.isRecurring
+                              ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                              : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                          }`}
+                        >
+                          {promo.isRecurring ? "تكرار يومي" : "محدد بالتاريخ"}
+                        </span>
+                      </div>
                       <p className="text-xs text-gray-500 font-mono mt-0.5">
-                        {promo.start} إلى {promo.end} ({promo.timezone || "Africa/Cairo"})
+                        {promo.startDate ? `📅 ${promo.startDate} | ` : ""}
+                        ⏰ {promo.start} إلى {promo.end} ({promo.timezone || "Africa/Cairo"})
                       </p>
                     </div>
                   </div>
