@@ -11,6 +11,8 @@ const JobsListV2 = () => {
   const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPausingAll, setIsPausingAll] = useState(false);
+  const [isPausingSelected, setIsPausingSelected] = useState(false);
+  const [isResumingSelected, setIsResumingSelected] = useState(false);
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -109,6 +111,42 @@ const JobsListV2 = () => {
     }
   };
 
+  const handlePauseSelected = async () => {
+    if (!confirm(`Are you sure you want to pause ${selectedJobs.length} selected jobs?`)) return;
+    setIsPausingSelected(true);
+    try {
+      await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/v4/admin/v2/jobs/bulk-pause", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobIds: selectedJobs }),
+      });
+      setSelectedJobs([]);
+      fetchJobs();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsPausingSelected(false);
+    }
+  };
+
+  const handleResumeSelected = async () => {
+    if (!confirm(`Are you sure you want to resume ${selectedJobs.length} selected jobs?`)) return;
+    setIsResumingSelected(true);
+    try {
+      await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/v4/admin/v2/jobs/bulk-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobIds: selectedJobs }),
+      });
+      setSelectedJobs([]);
+      fetchJobs();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsResumingSelected(false);
+    }
+  };
+
   const handlePauseAll = async () => {
     if (!confirm("Are you sure you want to pause ALL active jobs in the database?")) return;
     setIsPausingAll(true);
@@ -181,22 +219,44 @@ const JobsListV2 = () => {
             />
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
               <button
                 onClick={handlePauseAll}
                 disabled={isPausingAll}
-                className="rounded bg-warning px-4 py-2 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                className="rounded bg-slate-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
               >
-                {isPausingAll ? "Pausing..." : "Pause All Active Jobs"}
+                {isPausingAll ? "Pausing All..." : "Pause All Active Jobs"}
               </button>
              {selectedJobs.length > 0 && (
-                <button
-                  onClick={handleDeleteSelected}
-                  disabled={isDeleting}
-                  className="rounded bg-danger px-4 py-2 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-                >
-                  {isDeleting ? "Deleting..." : `Delete Selected (${selectedJobs.length})`}
-                </button>
+                <>
+                  <button
+                    onClick={handlePauseSelected}
+                    disabled={isPausingSelected}
+                    className="rounded bg-warning px-3.5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+                    title="Pause selected jobs"
+                  >
+                    <span>⏸️</span>
+                    <span>{isPausingSelected ? "Pausing..." : `Pause Selected (${selectedJobs.length})`}</span>
+                  </button>
+                  <button
+                    onClick={handleResumeSelected}
+                    disabled={isResumingSelected}
+                    className="rounded bg-success px-3.5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+                    title="Resume selected jobs"
+                  >
+                    <span>▶️</span>
+                    <span>{isResumingSelected ? "Resuming..." : `Resume Selected (${selectedJobs.length})`}</span>
+                  </button>
+                  <button
+                    onClick={handleDeleteSelected}
+                    disabled={isDeleting}
+                    className="rounded bg-danger px-3.5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+                    title="Delete selected jobs"
+                  >
+                    <span>🗑️</span>
+                    <span>{isDeleting ? "Deleting..." : `Delete Selected (${selectedJobs.length})`}</span>
+                  </button>
+                </>
               )}
           </div>
         </div>

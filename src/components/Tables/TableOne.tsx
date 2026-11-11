@@ -8,30 +8,30 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-const headers = {
-  Authorization: `JWT ${getJwtFromLocalStorage()}`,
-  "Content-Type": "application/json",
-};
-
 const TableOne = () => {
   const [Jobs, setJobs] = useState<Job[] | undefined>();
-  const [loading, setloading] = useState(false);
+  const [loading, setloading] = useState(true);
 
   async function getJobs() {
     try {
+      setloading(true);
+      const token = getJwtFromLocalStorage();
       const res = await API.get("/api/v3/jobs/latest", {
-        headers,
+        headers: {
+          Authorization: `JWT ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (res.status === 200) {
         setJobs(res.data);
       } else {
         console.error("No Jobs found");
-        toast.error("No Jobs found");
       }
     } catch (error) {
       console.error("Failed to fetch Jobs", error);
-      toast.error("Failed to fetch Jobs");
+    } finally {
+      setloading(false);
     }
   }
 
@@ -74,7 +74,11 @@ const TableOne = () => {
           </div>
         </div>
 
-        {Jobs &&
+        {loading ? (
+          <div className="py-8 text-center text-sm text-body dark:text-bodydark">
+            جاري تحميل أحدث الروابط...
+          </div>
+        ) : Jobs && Jobs.length > 0 ? (
           Jobs.map((link, key) => (
             <Link
               href={`/jobs/${link._id}`}
@@ -130,7 +134,12 @@ const TableOne = () => {
                 <p className="text-meta-5">{link.likeCount}</p>
               </div>
             </Link>
-          ))}
+          ))
+        ) : (
+          <div className="py-8 text-center text-sm text-body dark:text-bodydark">
+            لا توجد روابط مضافة حديثاً
+          </div>
+        )}
       </div>
     </div>
   );

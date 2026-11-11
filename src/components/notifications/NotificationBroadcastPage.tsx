@@ -11,19 +11,17 @@ interface NotificationStats {
 }
 
 interface BroadcastResult {
-  totalTargetTokens: number;
-  successCount: number;
-  failureCount: number;
-  topicBroadcast: boolean;
-  sentAt: string;
+  sendMethod?: string;
+  topic?: string;
+  topicBroadcast?: boolean;
+  messageId?: string;
+  sentAt?: string;
 }
 
 export default function NotificationBroadcastPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sendMethod, setSendMethod] = useState<"topic" | "tokens">("topic");
   const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState<NotificationStats | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -69,8 +67,6 @@ export default function NotificationBroadcastPage() {
         {
           title: title.trim(),
           body: body.trim(),
-          imageUrl: imageUrl.trim() || undefined,
-          sendMethod,
         },
         { headers: getAuthHeaders() }
       );
@@ -82,7 +78,6 @@ export default function NotificationBroadcastPage() {
         }
         setTitle("");
         setBody("");
-        setImageUrl("");
         fetchStats();
       }
     } catch (error: any) {
@@ -100,10 +95,10 @@ export default function NotificationBroadcastPage() {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-title-md2 font-bold text-black dark:text-white flex items-center gap-2">
-            📢 إرسال إشعار عام لجميع المستخدمين (Broadcast Notification)
+            📢 إرسال إشعار عام لجميع المستخدمين (Topic Broadcast)
           </h2>
           <p className="text-sm text-gray-500 dark:text-bodydark1 mt-1">
-            أرسل إشعارات Push Notifications فورية إلى جميع الأجهزة والمستخدمين المسجلين في التطبيق.
+            إرسال إشعار فوري (Push Notification) لكافة أجهزة التطبيق عبر قناة البث العام (Topic: all_users) بدون تكرار.
           </p>
         </div>
       </div>
@@ -134,7 +129,7 @@ export default function NotificationBroadcastPage() {
               </svg>
             </div>
             <div>
-              <span className="text-xs font-medium text-gray-500 dark:text-bodydark1">أجهزة فعالة تستقبل الإشعارات (FCM)</span>
+              <span className="text-xs font-medium text-gray-500 dark:text-bodydark1">أجهزة مسجلة بالإشعارات (FCM)</span>
               <h4 className="text-title-sm font-bold text-success">
                 {statsLoading ? "..." : (stats?.usersWithFcmCount?.toLocaleString() || "0")}
               </h4>
@@ -150,9 +145,9 @@ export default function NotificationBroadcastPage() {
               </svg>
             </div>
             <div>
-              <span className="text-xs font-medium text-gray-500 dark:text-bodydark1">طريقة البث الإضافية</span>
+              <span className="text-xs font-medium text-gray-500 dark:text-bodydark1">قناة البث العام (Topic)</span>
               <h4 className="text-title-sm font-bold text-black dark:text-white">
-                FCM Topic + Live Sockets
+                all_users (فوري وموحد)
               </h4>
             </div>
           </div>
@@ -191,7 +186,7 @@ export default function NotificationBroadcastPage() {
                   نص الإشعار (Notification Body) <span className="text-danger">*</span>
                 </label>
                 <textarea
-                  rows={4}
+                  rows={5}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   placeholder="مثال: ادخل التطبيق الآن واجمع نقاطك اليومية قبل انتهاء العرض..."
@@ -203,73 +198,17 @@ export default function NotificationBroadcastPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">
-                  رابط صورة إضافية (اختياري - Image URL)
-                </label>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/banner.jpg"
-                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                />
-              </div>
-
-              {/* Send Method Selector */}
-              <div>
-                <label className="mb-2 block text-sm font-medium text-black dark:text-white">
-                  آلية البث ومنع التكرار (Broadcast Channel)
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div
-                    onClick={() => setSendMethod("topic")}
-                    className={`cursor-pointer rounded-lg border p-3.5 transition flex items-start gap-3 ${
-                      sendMethod === "topic"
-                        ? "border-primary bg-primary/5 dark:bg-primary/10"
-                        : "border-stroke hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/20"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="sendMethod"
-                      checked={sendMethod === "topic"}
-                      onChange={() => setSendMethod("topic")}
-                      className="mt-1"
-                    />
-                    <div>
-                      <p className="text-xs font-bold text-black dark:text-white">
-                        📡 القناة العامة (Topic: all_users)
-                      </p>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                        يصل لجميع أجهزة التطبيق بإشعار واحد فوري ويمنع التكرار (الموصى به من مطور الموبايل).
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => setSendMethod("tokens")}
-                    className={`cursor-pointer rounded-lg border p-3.5 transition flex items-start gap-3 ${
-                      sendMethod === "tokens"
-                        ? "border-primary bg-primary/5 dark:bg-primary/10"
-                        : "border-stroke hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/20"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="sendMethod"
-                      checked={sendMethod === "tokens"}
-                      onChange={() => setSendMethod("tokens")}
-                      className="mt-1"
-                    />
-                    <div>
-                      <p className="text-xs font-bold text-black dark:text-white">
-                        🎯 الرموز المباشرة (Direct Tokens)
-                      </p>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                        إرسال مخصص لكل رمز جهاز مسجل في قاعدة البيانات دون استخدام القناة العامة.
-                      </p>
-                    </div>
+              {/* Topic Information Box */}
+              <div className="rounded-lg bg-blue-50/70 border border-blue-100 p-4 dark:bg-meta-4/20 dark:border-strokedark">
+                <div className="flex items-start gap-3">
+                  <span className="text-primary text-xl">📡</span>
+                  <div>
+                    <h5 className="text-xs font-bold text-black dark:text-white">
+                      آلية الإرسال: قناة البث العام (Topic: all_users)
+                    </h5>
+                    <p className="text-[12px] text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">
+                      يتم إرسال هذا الإشعار مباشرة إلى قناة التوبيك الخاصة بالتطبيق لتصل فوراً لجميع أجهزة المستخدمين النشطة دون تكرار وفقاً لإرشادات مطور الموبايل.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -284,14 +223,14 @@ export default function NotificationBroadcastPage() {
                   {loading ? (
                     <>
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      جاري البث لجميع المستخدمين...
+                      جاري البث عبر التوبيك لجميع المستخدمين...
                     </>
                   ) : (
                     <>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
                       </svg>
-                      إرسال الإشعار لجميع المستخدمين ({stats?.usersWithFcmCount?.toLocaleString() || "الكل"})
+                      إرسال الإشعار لجميع المستخدمين عبر التوبيك
                     </>
                   )}
                 </button>
@@ -336,20 +275,6 @@ export default function NotificationBroadcastPage() {
                 <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed">
                   {body || "نص الإشعار التوضيحي يظهر هنا كما سيراه المستخدم فور استلامه على هاتفه..."}
                 </p>
-
-                {imageUrl && (
-                  <div className="mt-2.5 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 max-h-36">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={imageUrl}
-                      alt="Banner Preview"
-                      className="w-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-                )}
               </div>
 
               <div className="text-center text-[11px] text-gray-400 mt-4">
@@ -364,10 +289,11 @@ export default function NotificationBroadcastPage() {
                   ✅ تقرير آخر إرسال ناجح:
                 </h4>
                 <ul className="text-xs text-green-700 dark:text-green-400 space-y-1">
-                  <li>• تم التوجيه إلى: <strong>{lastResult.totalTargetTokens.toLocaleString()}</strong> جهاز</li>
-                  <li>• تم الاستلام بنجاح: <strong>{lastResult.successCount.toLocaleString()}</strong> جهاز</li>
-                  <li>• بث القناة العامة (Topic): <strong>{lastResult.topicBroadcast ? "مفعل بنجاح" : "معطل"}</strong></li>
-                  <li>• وقت الإرسال: {new Date(lastResult.sentAt).toLocaleTimeString()}</li>
+                  <li>• آلية الإرسال: <strong>قناة البث العام (Topic: {lastResult.topic || "all_users"})</strong></li>
+                  <li>• حالة البث: <strong>تم الإرسال بنجاح إلى Firebase</strong></li>
+                  {lastResult.sentAt && (
+                    <li>• وقت الإرسال: {new Date(lastResult.sentAt).toLocaleTimeString()}</li>
+                  )}
                 </ul>
               </div>
             )}
@@ -390,11 +316,7 @@ export default function NotificationBroadcastPage() {
             </h3>
 
             <p className="mb-4 text-sm text-gray-600 dark:text-bodydark1">
-              أنت على وشك إرسال هذا الإشعار إلى ما يقارب{" "}
-              <strong className="text-primary font-bold">
-                {stats?.usersWithFcmCount?.toLocaleString() || "جميع"}
-              </strong>{" "}
-              مستخدم مسجل في النظام. هل أنت متأكد من المتابعة؟
+              أنت على وشك إرسال هذا الإشعار العام عبر قناة البث (Topic: all_users) إلى جميع مستخدمي التطبيق. هل أنت متأكد من المتابعة؟
             </p>
 
             <div className="rounded-lg bg-gray-50 p-3 mb-5 text-right text-xs text-gray-700 dark:bg-meta-4/20 dark:text-bodydark1">
